@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Order Details · Nimbus Admin</title>
+  <meta name="description" content="Order Details — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><a href="orders.html">Orders</a><span aria-current="page" id="crumb"></span></nav>
+          <div class="flex items-center wrap gap-3"><h1 class="page-title" id="title"></h1><span id="status-badges" class="flex gap-2"></span></div>
+          <p class="page-subtitle" id="subtitle"></p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-secondary" id="invoice-link" href="invoice-detail.html"><i class="ph ph-printer"></i>Invoice</a>
+          <button class="btn btn-soft-danger" type="button" id="refund"><i class="ph ph-arrow-counter-clockwise"></i>Refund</button>
+          <div class="dropdown">
+            <button class="btn btn-primary" type="button" data-dropdown aria-haspopup="true" aria-expanded="false">Update status<i class="ph ph-caret-down"></i></button>
+            <div class="dropdown-menu" id="status-menu"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="xl-8 stack">
+          <section class="card" aria-labelledby="progress-title">
+            <div class="card-header"><h2 class="card-title" id="progress-title">Order progress</h2><span class="text-xs text-3" id="eta"></span></div>
+            <div class="card-body"><div id="cancelled-alert"></div><ol class="stepper horizontal" id="stepper"></ol></div>
+          </section>
+
+          <section class="card" aria-labelledby="items-title">
+            <div class="card-header"><h2 class="card-title" id="items-title">Items</h2><span class="badge" id="item-count"></span></div>
+            <div class="card-body flush mt-3">
+              <div class="table-wrap">
+                <table class="table table-cards">
+                  <caption class="sr-only">Order items</caption>
+                  <thead><tr><th scope="col">Product</th><th scope="col" class="num">Price</th><th scope="col" class="num">Qty</th><th scope="col" class="num">Total</th></tr></thead>
+                  <tbody id="items"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card-footer"><div class="invoice-totals" id="totals" style="padding-top:0"></div></div>
+          </section>
+
+          <section class="card" aria-labelledby="history-title">
+            <div class="card-header"><h2 class="card-title" id="history-title">History</h2></div>
+            <div class="card-body"><ul class="timeline" id="history"></ul></div>
+          </section>
+        </div>
+
+        <div class="xl-4 stack">
+          <section class="card" aria-labelledby="customer-title">
+            <div class="card-header"><h2 class="card-title" id="customer-title">Customer</h2><a class="card-link" id="customer-link" href="#">Profile <i class="ph ph-arrow-right"></i></a></div>
+            <div class="card-body stack-sm" id="customer"></div>
+          </section>
+          <section class="card" aria-labelledby="ship-title">
+            <div class="card-header"><h2 class="card-title" id="ship-title">Shipping</h2></div>
+            <div class="card-body"><ul class="info-list" id="shipping"></ul></div>
+          </section>
+          <section class="card" aria-labelledby="pay-title">
+            <div class="card-header"><h2 class="card-title" id="pay-title">Payment</h2></div>
+            <div class="card-body"><dl class="meta-list" id="payment"></dl></div>
+          </section>
+          <section class="card" aria-labelledby="note-title">
+            <div class="card-header"><h2 class="card-title" id="note-title">Internal note</h2></div>
+            <form class="card-body stack-sm" data-validate novalidate data-success="Note saved" data-keep>
+              <div class="field"><label class="sr-only" for="note">Internal note</label><textarea class="textarea" id="note" name="note" required placeholder="Visible to your team only">Customer asked for eco-friendly packaging where possible.</textarea></div>
+              <button class="btn btn-soft" type="submit"><i class="ph ph-floppy-disk"></i>Save note</button>
+            </form>
+          </section>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { fmt, esc, avatar, badge, param, $, toast, confirm } = App;
+  const o = DB.find('orders', param('id')) || DB.orders.find(x => x.status === 'Shipped') || DB.orders[0];
+  const customer = DB.find('customers', o.customerId);
+  const STEPS = [['Order placed', 'receipt'], ['Payment confirmed', 'credit-card'], ['Packed', 'package'], ['Shipped', 'truck'], ['Delivered', 'house-line']];
+  const STAGE = { Pending: 1, Processing: 2, Shipped: 3, Delivered: 5, Cancelled: 1 };
+  const placed = new Date(o.date);
+  const stepTime = i => new Date(placed.getTime() + i * 0.9 * 864e5);
+
+  document.title = `Order #${o.id} · Nimbus Admin`;
+  $('#crumb').textContent = `#${o.id}`;
+  $('#title').textContent = `Order #${o.id}`;
+  $('#subtitle').textContent = `Placed ${fmt.date(o.date)} at ${fmt.time(o.date)} · ${o.channel}`;
+  $('#invoice-link').href = `invoice-detail.html?order=${o.id}`;
+
+  function render() {
+    const cur = STAGE[o.status];
+    $('#status-badges').innerHTML = badge(o.status) + badge(o.payment);
+    $('#stepper').innerHTML = STEPS.map(([name, icon], i) => {
+      const state = o.status === 'Cancelled' ? (i === 0 ? 'is-done' : '') : i < cur ? 'is-done' : i === cur ? 'is-current' : '';
+      const when = state === 'is-done' ? `${fmt.day(stepTime(i))}, ${fmt.time(stepTime(i))}` : state === 'is-current' ? 'In progress' : 'Pending';
+      return `<li class="step ${state}"${state === 'is-current' ? ' aria-current="step"' : ''}><span class="step-icon"><i class="ph ph-${state === 'is-done' ? 'check' : icon}"></i></span><div><p class="step-title">${name}</p><p class="step-meta">${when}</p></div></li>`;
+    }).join('');
+    $('#cancelled-alert').innerHTML = o.status === 'Cancelled' ? '<div class="alert tone-danger mb-4"><i class="ph ph-x-circle"></i><div><strong>This order was cancelled</strong>The payment was refunded to the original method.</div></div>' : '';
+    $('#eta').textContent = o.status === 'Delivered' ? `Delivered ${fmt.day(stepTime(4))}` : o.status === 'Cancelled' ? '' : `Estimated delivery ${fmt.day(stepTime(5))}`;
+    $('#status-menu').innerHTML = ['Processing', 'Shipped', 'Delivered'].map(s => `<button class="dropdown-item" type="button" data-status="${s}" ${o.status === s ? 'disabled' : ''}><i class="ph ph-${s === 'Processing' ? 'package' : s === 'Shipped' ? 'truck' : 'check-circle'}"></i>Mark as ${s.toLowerCase()}</button>`).join('');
+    $('#refund').disabled = o.payment !== 'Paid';
+    $('#history').innerHTML = [
+      ...(o.status === 'Cancelled' ? [['x-circle', 'danger', 'Order cancelled', 'Refund issued to the original payment method']] : []),
+      ...(cur >= 5 ? [['house-line', 'success', 'Delivered', `Signed by ${o.customer.split(' ')[0]}`]] : []),
+      ...(cur >= 3 && o.status !== 'Cancelled' ? [['truck', 'info', `Shipped with ${o.carrier}`, `Tracking ${o.tracking}`]] : []),
+      ...(cur >= 2 && o.status !== 'Cancelled' ? [['package', 'violet', 'Packed at Austin Central', 'Picked by Daniel Foster']] : []),
+      ...(o.payment !== 'Unpaid' ? [['credit-card', 'primary', 'Payment confirmed', `${fmt.money(o.total, 2)} via ${o.method}`]] : []),
+      ['receipt', 'neutral', 'Order placed', `${o.items.length} products via ${o.channel}`],
+    ].map(([icon, tone, t, meta], i, arr) => `<li class="timeline-item"><span class="timeline-icon tone-${tone}"><i class="ph ph-${icon}"></i></span><div><p class="timeline-title">${t}</p><p class="timeline-text">${esc(meta)}</p><p class="timeline-meta">${fmt.date(stepTime(arr.length - 1 - i))}</p></div></li>`).join('');
+  }
+  render();
+
+  $('#item-count').textContent = `${o.items.reduce((s, x) => s + x.qty, 0)} items`;
+  $('#items').innerHTML = o.items.map(x => `<tr>
+    <td class="cell-main" data-label="Product"><div class="cell-user"><span class="thumb-icon tone-${x.tone}"><i class="ph ph-${x.icon}"></i></span><div><strong>${esc(x.name)}</strong><small>SKU ${x.sku}</small></div></div></td>
+    <td class="num" data-label="Price">${fmt.money(x.price, 2)}</td><td class="num" data-label="Qty">${x.qty}</td><td class="num fw-700" data-label="Total">${fmt.money(x.price * x.qty, 2)}</td></tr>`).join('');
+  $('#totals').innerHTML = [['Subtotal', o.subtotal], ['Discount', -o.discount], ['Shipping', o.shipping], ['Tax (8%)', o.tax]]
+    .map(([k, v]) => `<div><span class="text-2">${k}</span><span>${v === 0 && k === 'Shipping' ? 'Free' : fmt.money(v, 2)}</span></div>`).join('')
+    + `<div class="grand"><span>Total</span><span>${fmt.money(o.total, 2)}</span></div>`;
+
+  $('#customer-link').href = `customer-detail.html?id=${o.customerId}`;
+  $('#customer').innerHTML = `<div class="flex items-center gap-3">${avatar(o.customer, 'avatar-lg')}<div><p class="fw-700">${esc(o.customer)}</p><p class="text-xs text-3">${esc(o.company)}</p><p class="text-xs text-2 mt-1">${customer ? `${customer.orders} orders · ${fmt.money(customer.ltv)} lifetime` : ''}</p></div></div>
+    <ul class="info-list"><li><i class="ph ph-envelope-simple"></i><a href="mailto:${esc(o.email)}">${esc(o.email)}</a></li><li><i class="ph ph-phone"></i>${esc(o.phone || customer?.phone || '')}</li></ul>`;
+  $('#shipping').innerHTML = `<li><i class="ph ph-map-pin"></i><div><small>Ship to</small>${esc(o.address)}</div></li>
+    <li><i class="ph ph-truck"></i><div><small>Carrier</small>${esc(o.carrier)}</div></li>
+    <li><i class="ph ph-barcode"></i><div class="grow"><small>Tracking number</small><span class="flex items-center gap-2">${o.tracking}<button class="btn btn-ghost btn-icon btn-sm" type="button" data-action="copy" data-copy="${o.tracking}" aria-label="Copy tracking number"><i class="ph ph-copy"></i></button></span></div></li>`;
+  $('#payment').innerHTML = `<dt>Method</dt><dd>${esc(o.method)}</dd><dt>Status</dt><dd>${badge(o.payment)}</dd><dt>Transaction</dt><dd>TXN-${o.id.slice(4)}88</dd><dt>Paid on</dt><dd>${o.payment === 'Unpaid' ? '—' : fmt.date(stepTime(1))}</dd>`;
+
+  $('#status-menu').addEventListener('click', e => {
+    const b = e.target.closest('[data-status]');
+    if (!b) return;
+    o.status = b.dataset.status;
+    if (o.payment === 'Unpaid') o.payment = 'Paid';
+    render();
+    toast(`Order marked as ${o.status.toLowerCase()}`, { title: `#${o.id}` });
+  });
+  $('#refund').addEventListener('click', async () => {
+    if (await confirm({ title: 'Refund this order?', text: `${fmt.money(o.total, 2)} will be returned to ${o.method}.`, confirm: 'Issue refund' })) {
+      o.status = 'Cancelled'; o.payment = 'Refunded'; render(); toast('Refund issued', { type: 'warning' });
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Help Center · Nimbus Admin</title>
+  <meta name="description" content="Help Center — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <section class="help-hero" aria-labelledby="help-title">
+        <span class="icon-tile lg tone-primary"><i class="ph ph-lifebuoy"></i></span>
+        <h1 id="help-title">How can we help?</h1>
+        <p class="text-2">Search guides and answers, or reach out to our support team.</p>
+        <div class="input-icon"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" id="q" placeholder="Search for “invoices”, “stock transfer”, “payroll”…" aria-label="Search help articles"></div>
+        <div class="flex wrap gap-2 justify-center mt-2" id="popular"></div>
+      </section>
+
+      <section class="auto-grid" style="--min:240px" aria-label="Help topics" id="topics"></section>
+
+      <section class="row">
+        <div class="xl-8 stack-sm">
+          <h2 class="section-title">Frequently asked questions</h2>
+          <div class="accordion" id="faq"></div>
+          <p class="text-sm text-3" id="no-results" hidden>No answers match your search — try different words or contact support.</p>
+        </div>
+        <div class="xl-4 stack">
+          <form class="card" data-validate novalidate data-success="Thanks! Our team will reply within 4 business hours.">
+            <div class="card-header"><div><h2 class="card-title">Contact support</h2><p class="card-subtitle">Average reply time: 2 hours</p></div></div>
+            <div class="card-body stack-sm">
+              <div class="field"><label class="label" for="h-topic">Topic</label><select class="select" id="h-topic" name="topic"><option>Billing</option><option>Technical issue</option><option>Feature request</option><option>Account access</option></select></div>
+              <div class="field"><label class="label" for="h-subject">Subject</label><input class="input" id="h-subject" name="subject" required></div>
+              <div class="field"><label class="label" for="h-msg">How can we help?</label><textarea class="textarea" id="h-msg" name="message" required minlength="10" data-error="Please describe the issue (at least 10 characters)."></textarea></div>
+              <button class="btn btn-primary" type="submit"><i class="ph ph-paper-plane-tilt"></i>Send message</button>
+            </div>
+          </form>
+          <section class="card">
+            <div class="card-body stack-sm">
+              <div class="flex items-center gap-3"><span class="icon-tile tone-success"><i class="ph ph-headset"></i></span><div><p class="fw-700">Talk to us</p><p class="text-sm text-2">Mon–Fri, 8am–6pm CT</p></div></div>
+              <a class="btn btn-secondary" href="tel:+15125550100"><i class="ph ph-phone"></i>+1 (512) 555-0100</a>
+              <a class="btn btn-secondary" href="messages.html"><i class="ph ph-chat-circle-dots"></i>Start live chat</a>
+            </div>
+          </section>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { esc, $ } = App;
+  const TOPICS = [['rocket-launch', 'primary', 'Getting started', 'Set up your workspace, invite your team and import data.', 12], ['shopping-cart-simple', 'success', 'Orders & invoices', 'Create orders, send invoices and collect payments.', 18],
+    ['package', 'warning', 'Inventory', 'Products, warehouses, transfers and reorder rules.', 15], ['users-three', 'violet', 'CRM', 'Customers, leads, pipelines and forecasting.', 9],
+    ['wallet', 'info', 'Finance & payroll', 'Expenses, payroll runs and financial reports.', 14], ['shield-check', 'pink', 'Security & access', 'Roles, permissions, SSO and two-factor auth.', 7]];
+  $('#topics').innerHTML = TOPICS.map(([i, t, name, d, n]) => `<a class="card folder-card" href="#faq" style="color:inherit;text-decoration:none"><span class="icon-tile tone-${t}"><i class="ph ph-${i}"></i></span><div><h2 class="fw-700">${name}</h2><p class="text-sm text-2">${d}</p></div><span class="card-link">${n} articles <i class="ph ph-arrow-right"></i></span></a>`).join('');
+
+  const FAQ = [
+    ['How do I import customers from a spreadsheet?', 'Go to Customers → Import and upload a CSV with name, email and company columns. Nimbus previews the rows and skips duplicates by email before anything is saved.'],
+    ['Can I create an invoice from an existing order?', 'Yes. Open the order, then choose “Invoice” in the page actions. Line items, taxes and the customer’s billing details are copied automatically.'],
+    ['How are reorder points calculated?', 'Each product has a reorder point you can set manually. When stock on hand drops below it, the item appears in Reorder alerts and you can draft a purchase order in one click.'],
+    ['How do I transfer stock between warehouses?', 'From Stock & warehouses, click “Transfer stock”, choose the product, source and destination warehouse, and a ship date. The receiving warehouse is notified automatically.'],
+    ['Who can approve expenses and payroll?', 'Users with the Manager, Finance or Administrator role can approve expenses. Only Finance and Administrators can submit a payroll run for payment.'],
+    ['Does Nimbus support dark mode?', 'Yes — use the moon icon in the top bar or choose Light, Dark or System in Settings → Appearance. Your choice is remembered on this device.'],
+    ['How do I enable two-factor authentication?', 'Open Settings → Security and turn on Two-factor authentication. You’ll scan a QR code with your authenticator app and save backup codes.'],
+  ];
+  const renderFaq = q => {
+    const items = FAQ.filter(([a, b]) => !q || (a + b).toLowerCase().includes(q));
+    $('#faq').innerHTML = items.map(([a, b], i) => `<details${i === 0 && !q ? ' open' : ''}><summary>${esc(a)}<i class="ph ph-caret-down"></i></summary><div class="acc-body">${esc(b)}</div></details>`).join('');
+    $('#no-results').hidden = items.length > 0;
+  };
+  renderFaq('');
+  $('#q').addEventListener('input', e => renderFaq(e.target.value.trim().toLowerCase()));
+  $('#popular').innerHTML = ['Invoice', 'Transfer', 'Payroll', 'Two-factor'].map(t => `<button class="chip" type="button">${t}</button>`).join('');
+  $('#popular').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) { $('#q').value = c.textContent; renderFaq(c.textContent.toLowerCase()); $('#faq').scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
+</script>
+</body>
+</html>

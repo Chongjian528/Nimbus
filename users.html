@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Users & Roles · Nimbus Admin</title>
+  <meta name="description" content="Users & Roles — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Administration</span><span aria-current="page">Users &amp; roles</span></nav>
+          <h1 class="page-title">Users &amp; roles</h1>
+          <p class="page-subtitle">Control who can access Nimbus and what they can do.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" type="button" data-modal="#invite-modal"><i class="ph ph-user-plus"></i>Invite user</button>
+        </div>
+      </div>
+
+      <section class="card">
+        <div class="tabs" role="tablist" aria-label="Access management">
+          <button class="tab" role="tab" id="tab-users" aria-controls="panel-users" aria-selected="true">Users <span class="count" id="user-count"></span></button>
+          <button class="tab" role="tab" id="tab-roles" aria-controls="panel-roles" aria-selected="false" tabindex="-1">Roles</button>
+          <button class="tab" role="tab" id="tab-perms" aria-controls="panel-perms" aria-selected="false" tabindex="-1">Permissions</button>
+        </div>
+
+        <div class="tab-panel" role="tabpanel" id="panel-users" aria-labelledby="tab-users" tabindex="0">
+          <div id="users">
+            <div class="table-toolbar">
+              <div class="input-icon"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" placeholder="Search users…" aria-label="Search users" data-table-search></div>
+              <select class="select" data-table-filter="role" aria-label="Filter by role" id="role-filter"><option value="all">All roles</option></select>
+              <select class="select" data-table-filter="status" aria-label="Filter by status"><option value="all">Any status</option><option>Active</option><option>Invited</option><option>Suspended</option></select>
+            </div>
+            <div class="table-wrap"><table class="table table-cards"></table></div>
+            <div class="table-footer"><span data-table-info></span><nav class="pagination" aria-label="Pagination" data-table-pager></nav></div>
+          </div>
+        </div>
+
+        <div class="tab-panel card-body" role="tabpanel" id="panel-roles" aria-labelledby="tab-roles" tabindex="0" hidden>
+          <div class="auto-grid" style="--min:260px" id="roles"></div>
+        </div>
+
+        <div class="tab-panel card-body stack-sm" role="tabpanel" id="panel-perms" aria-labelledby="tab-perms" tabindex="0" hidden>
+          <div class="flex wrap items-end gap-3">
+            <div class="field" style="min-width:220px"><label class="label" for="perm-role">Role</label><select class="select" id="perm-role"></select></div>
+            <p class="text-sm text-2 grow" id="perm-desc"></p>
+            <button class="btn btn-primary" type="button" id="save-perms"><i class="ph ph-floppy-disk"></i>Save changes</button>
+          </div>
+          <div class="table-wrap" style="border:1px solid var(--border);border-radius:14px">
+            <table class="table perm-table">
+              <caption class="sr-only">Permissions by module</caption>
+              <thead><tr><th scope="col">Module</th><th scope="col">View</th><th scope="col">Create</th><th scope="col">Edit</th><th scope="col">Delete</th><th scope="col">Export</th></tr></thead>
+              <tbody id="perms"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <dialog class="modal" id="invite-modal" aria-labelledby="inv-title">
+        <form class="modal-form" data-validate novalidate id="invite-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="inv-title">Invite user</h2><p class="modal-desc">They’ll receive an email to set a password.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body stack-sm">
+            <div class="field"><label class="label" for="i-name">Full name</label><input class="input" id="i-name" name="name" required autocomplete="off"></div>
+            <div class="field"><label class="label" for="i-email">Email</label><input class="input" id="i-email" name="email" type="email" required autocomplete="off"></div>
+            <div class="field"><span class="label" id="i-role-label">Role</span><div class="stack-sm" role="radiogroup" aria-labelledby="i-role-label" id="i-roles"></div></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit"><i class="ph ph-paper-plane-tilt"></i>Send invite</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { fmt, esc, avatar, avatars, badge, rowMenu, table, toast, confirm, $ } = App;
+  const ROLES = [
+    ['Administrator', 'Full access to every module and setting.', 'crown-simple', 'violet'],
+    ['Manager', 'Manage teams, approve expenses and payroll.', 'briefcase', 'primary'],
+    ['Sales', 'Customers, leads, deals and orders.', 'handshake', 'success'],
+    ['Finance', 'Invoices, expenses, payroll and reports.', 'wallet', 'warning'],
+    ['Warehouse', 'Products, stock and purchase orders.', 'warehouse', 'info'],
+    ['Viewer', 'Read-only access to dashboards and reports.', 'eye', 'neutral'],
+  ];
+  const roleFor = e => e.role.includes('Manager') ? 'Manager' : ({ Sales: 'Sales', Finance: 'Finance', Operations: 'Warehouse' }[e.department] || 'Viewer');
+  const users = [{ id: 'U-0', name: App.me.name, email: App.me.email, role: 'Administrator', status: 'Active', mfa: true, last: new Date().toISOString() },
+    ...DB.employees.map((e, i) => ({ id: `U-${i + 1}`, name: e.name, email: e.email, role: roleFor(e), status: i % 9 === 4 ? 'Invited' : i % 13 === 7 ? 'Suspended' : 'Active', mfa: i % 3 !== 0, last: new Date(Date.now() - (i * 37 % 200) * 3600e3).toISOString() }))];
+
+  $('#role-filter').insertAdjacentHTML('beforeend', ROLES.map(r => `<option>${r[0]}</option>`).join(''));
+  const list = table('#users', {
+    data: users, caption: 'Users', pageSize: 8, rowClick: false, sort: ['name', 'asc'], search: ['name', 'email', 'role'],
+    columns: [
+      { key: 'name', label: 'User', sortable: true, cls: 'cell-main', render: u => `<div class="cell-user">${avatar(u.name)}<div><strong>${esc(u.name)}${u.id === 'U-0' ? ' <span class="badge tone-primary">You</span>' : ''}</strong><small>${esc(u.email)}</small></div></div>` },
+      { key: 'role', label: 'Role', sortable: true, render: u => { const r = ROLES.find(x => x[0] === u.role); return `<span class="badge tone-${r[3]}"><i class="ph ph-${r[2]}"></i>${u.role}</span>`; } },
+      { key: 'status', label: 'Status', sortable: true, render: u => badge(u.status) },
+      { key: 'mfa', label: '2FA', sortable: true, cls: 'col-xl', render: u => u.mfa ? '<span class="badge tone-success"><i class="ph ph-shield-check"></i>On</span>' : '<span class="badge tone-warning"><i class="ph ph-shield-warning"></i>Off</span>' },
+      { key: 'last', label: 'Last active', sortable: true, cls: 'col-xl', render: u => u.status === 'Invited' ? '<span class="text-3">Never</span>' : `<span class="nowrap">${fmt.ago(u.last)}</span>` },
+      { label: '', cls: 'cell-actions', render: u => u.id === 'U-0' ? '' : rowMenu([
+        ...ROLES.filter(r => r[0] !== u.role).slice(0, 3).map(r => ({ label: `Make ${r[0]}`, icon: r[2], action: `role:${r[0]}` })),
+        '-', { label: u.status === 'Invited' ? 'Resend invite' : 'Reset password', icon: 'key', action: 'reset' },
+        { label: u.status === 'Suspended' ? 'Reactivate' : 'Suspend', icon: u.status === 'Suspended' ? 'play-circle' : 'pause-circle', action: 'suspend' },
+        { label: 'Remove user', icon: 'user-minus', action: 'remove', danger: true },
+      ], `Actions for ${u.name}`) },
+    ],
+  });
+  const counts = () => { $('#user-count').textContent = list.data.length; renderRoles(); };
+
+  function renderRoles() {
+    $('#roles').innerHTML = ROLES.map(([name, desc, icon, tone]) => {
+      const members = list.data.filter(u => u.role === name).map(u => u.name);
+      return `<article class="card folder-card" style="box-shadow:none">
+        <div class="flex items-start gap-3"><span class="icon-tile tone-${tone}"><i class="ph ph-${icon}"></i></span><div class="grow"><h3 class="fw-700">${name}</h3><p class="text-sm text-2">${desc}</p></div></div>
+        <div class="flex items-center justify-between">${members.length ? avatars(members, 4, 'avatar-xs') : '<span class="text-xs text-3">No members</span>'}<span class="text-xs text-3">${members.length} user${members.length === 1 ? '' : 's'}</span></div>
+        <button class="btn btn-secondary btn-sm" type="button" data-edit-role="${name}"><i class="ph ph-sliders-horizontal"></i>Edit permissions</button>
+      </article>`;
+    }).join('');
+  }
+  counts();
+
+  $('#users').addEventListener('click', async e => {
+    const b = e.target.closest('[data-row-action]');
+    if (!b) return;
+    const u = list.find(b.closest('tr').dataset.id), act = b.dataset.rowAction;
+    if (act.startsWith('role:')) { u.role = act.slice(5); toast(`${u.name} is now ${u.role}`); }
+    if (act === 'reset') toast(u.status === 'Invited' ? `Invite re-sent to ${u.email}` : `Password reset link sent to ${u.email}`, { type: 'info' });
+    if (act === 'suspend') { u.status = u.status === 'Suspended' ? 'Active' : 'Suspended'; toast(`${u.name} ${u.status === 'Suspended' ? 'suspended' : 'reactivated'}`, { type: 'warning' }); }
+    if (act === 'remove' && await confirm({ title: `Remove ${u.name}?`, text: 'They will lose access immediately. Their data stays in Nimbus.', confirm: 'Remove user' })) { list.remove([u.id]); toast(`${u.name} removed`); }
+    list.render(); counts();
+  });
+
+  // Permission matrix
+  const MODULES = ['Dashboard', 'Customers', 'Leads & deals', 'Orders', 'Invoices', 'Products', 'Inventory', 'Finance', 'Employees', 'Payroll', 'Reports', 'Settings'];
+  const ACTIONS = ['View', 'Create', 'Edit', 'Delete', 'Export'];
+  const MATRIX = {};
+  ROLES.forEach(([r], ri) => { MATRIX[r] = MODULES.map((m, mi) => ACTIONS.map((a, ai) => ri === 0 || (ri === 5 ? ai === 0 && mi < 11 : (mi * 7 + ri * 3 + ai * 5) % 9 > ai + 1 || ai === 0))); });
+  $('#perm-role').innerHTML = ROLES.map(r => `<option>${r[0]}</option>`).join('');
+  function renderPerms() {
+    const r = $('#perm-role').value, locked = r === 'Administrator';
+    $('#perm-desc').textContent = ROLES.find(x => x[0] === r)[1] + (locked ? ' Administrator permissions cannot be changed.' : '');
+    $('#perms').innerHTML = MODULES.map((m, mi) => `<tr><th scope="row">${m}</th>${ACTIONS.map((a, ai) => `<td><input type="checkbox" data-m="${mi}" data-a="${ai}" ${MATRIX[r][mi][ai] ? 'checked' : ''} ${locked ? 'disabled' : ''} aria-label="${a} ${m}"></td>`).join('')}</tr>`).join('');
+    $('#save-perms').disabled = locked;
+  }
+  renderPerms();
+  $('#perm-role').addEventListener('change', renderPerms);
+  $('#perms').addEventListener('change', e => { MATRIX[$('#perm-role').value][e.target.dataset.m][e.target.dataset.a] = e.target.checked; });
+  $('#save-perms').addEventListener('click', () => toast(`Permissions updated for ${$('#perm-role').value}`));
+  $('#roles').addEventListener('click', e => { const b = e.target.closest('[data-edit-role]'); if (!b) return; $('#perm-role').value = b.dataset.editRole; renderPerms(); $('#tab-perms').click(); });
+
+  $('#i-roles').innerHTML = ROLES.slice(1).map(([n, d], i) => `<label class="option-card"><input type="radio" name="role" value="${n}" ${i === 2 ? 'checked' : ''}><span><strong>${n}</strong><small>${d}</small></span></label>`).join('');
+  $('#invite-form').addEventListener('valid', e => {
+    const d = e.detail;
+    list.add({ id: `U-${Date.now()}`, name: d.name, email: d.email, role: d.role, status: 'Invited', mfa: false, last: new Date().toISOString() });
+    counts(); toast(`Invitation sent to ${d.email}`, { title: `${d.name} invited as ${d.role}` });
+  });
+</script>
+</body>
+</html>

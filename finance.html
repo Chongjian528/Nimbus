@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finance Overview · Nimbus Admin</title>
+  <meta name="description" content="Finance Overview — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Finance</span><span aria-current="page">Overview</span></nav>
+          <h1 class="page-title">Finance overview</h1>
+          <p class="page-subtitle">Cash flow, profitability and account balances.</p>
+        </div>
+        <div class="page-actions">
+          <select class="select" aria-label="Fiscal period" style="width:auto"><option>Last 12 months</option><option>This fiscal year</option><option>Last fiscal year</option></select>
+          <a class="btn btn-secondary" href="reports.html"><i class="ph ph-file-text"></i>Reports</a>
+          <a class="btn btn-primary" href="expenses.html"><i class="ph ph-plus"></i>New expense</a>
+        </div>
+      </div>
+
+      <section class="row" aria-label="Financial summary" id="kpis"></section>
+
+      <section class="row stretch">
+        <div class="card xl-8">
+          <div class="card-header"><div><h2 class="card-title">Cash flow</h2><p class="card-subtitle">Money in vs. money out per month</p></div></div>
+          <div class="card-body"><div id="cashflow-chart" class="chart" style="--chart-h:310px"></div></div>
+        </div>
+        <div class="card xl-4">
+          <div class="card-header"><div><h2 class="card-title">Where the money goes</h2><p class="card-subtitle">Operating expenses, last 30 days</p></div></div>
+          <div class="card-body">
+            <div id="expense-chart" class="chart" style="--chart-h:230px"></div>
+            <ul class="list mt-2" id="expense-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="row stretch">
+        <div class="card xl-4">
+          <div class="card-header"><div><h2 class="card-title">Accounts</h2><p class="card-subtitle">Connected balances</p></div><button class="btn btn-ghost btn-sm" type="button" onclick="App.toast('Balances refreshed', { type: 'info' })"><i class="ph ph-arrows-clockwise"></i>Sync</button></div>
+          <div class="card-body stack-sm">
+            <div class="pay-card">
+              <div class="flex justify-between items-start"><div><small>Total balance</small><p class="fw-800" style="font-size:1.75rem;letter-spacing:-.02em">$1,284,560.42</p></div><i class="ph ph-bank" style="font-size:28px"></i></div>
+              <div class="flex justify-between items-end"><span class="num">•••• 4821</span><small>First Harbor Bank</small></div>
+            </div>
+            <ul class="list" id="accounts"></ul>
+          </div>
+        </div>
+        <div class="card xl-8">
+          <div class="card-header"><div><h2 class="card-title">Net profit margin</h2><p class="card-subtitle">Net profit as a share of revenue</p></div><span class="badge tone-success badge-lg" id="margin-now"></span></div>
+          <div class="card-body"><div id="margin-chart" class="chart" style="--chart-h:300px"></div></div>
+        </div>
+      </section>
+
+      <section class="card" id="transactions" aria-label="Recent transactions">
+        <div class="table-toolbar">
+          <h2 class="card-title" style="margin-right:auto">Recent transactions</h2>
+          <div class="input-icon"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" placeholder="Search transactions…" aria-label="Search transactions" data-table-search></div>
+          <select class="select" data-table-filter="type" aria-label="Filter by type"><option value="all">All types</option><option value="in">Money in</option><option value="out">Money out</option></select>
+        </div>
+        <div class="table-wrap"><table class="table table-cards"></table></div>
+        <div class="table-footer"><span data-table-info></span><nav class="pagination" aria-label="Pagination" data-table-pager></nav></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/plugins/apexcharts/apexcharts.min.js"></script>
+<script>
+  const { fmt, esc, badge, table, chart, areaFill, delta, $ } = App;
+  const sum = a => a.reduce((s, v) => s + v, 0);
+  const income = DB.revenue, spend = DB.expensesSeries;
+  const profit = income.map((v, i) => v - spend[i]);
+
+  $('#kpis').innerHTML = [
+    ['Revenue', fmt.money(sum(income)), 18.4, true, 'arrow-circle-down', 'success'],
+    ['Expenses', fmt.money(sum(spend)), 7.2, false, 'arrow-circle-up', 'danger'],
+    ['Net profit', fmt.money(sum(profit)), 24.9, true, 'chart-line-up', 'primary'],
+    ['Cash runway', '26 months', 3.0, true, 'hourglass-medium', 'violet'],
+  ].map(([k, v, d, up, i, t]) => `<article class="card stat sm-6 xl-3"><div class="stat-head"><span class="icon-tile tone-${t}"><i class="ph ph-${i}"></i></span><h2 class="stat-label">${k}</h2></div><p class="stat-value">${v}</p><div class="stat-foot">${delta(d, up)}vs. previous 12 months</div></article>`).join('');
+
+  chart('#cashflow-chart', {
+    chart: { type: 'bar', height: 310 },
+    series: [{ name: 'Money in', data: income }, { name: 'Money out', data: spend }],
+    colors: ['--chart-1', '--chart-2'],
+    stroke: { width: 2, colors: ['--surface'] },
+    plotOptions: { bar: { columnWidth: '58%' } },
+    xaxis: { categories: DB.months },
+    yaxis: { labels: { formatter: v => fmt.cash(v) } },
+    tooltip: { shared: true, intersect: false, y: { formatter: v => fmt.money(v) } },
+    table: { format: v => fmt.money(v) },
+  });
+
+  const cats = [['Payroll', 212400, '--chart-1'], ['Inventory', 96300, '--chart-2'], ['Rent & utilities', 24800, '--chart-3'], ['Marketing', 21300, '--chart-4'], ['Software', 16420, '--chart-5']];
+  chart('#expense-chart', {
+    chart: { type: 'donut', height: 230 },
+    series: cats.map(c => c[1]), labels: cats.map(c => c[0]), colors: cats.map(c => c[2]),
+    stroke: { width: 2, colors: ['--surface'] }, legend: { show: false },
+    plotOptions: { pie: { donut: { size: '74%', labels: { show: true, name: { color: '--text-3', fontSize: '13px', offsetY: 22 }, value: { color: '--text', fontSize: '22px', fontWeight: 700, offsetY: -14, formatter: v => fmt.cash(+v) }, total: { show: true, label: 'Total spend', color: '--text-3', formatter: () => fmt.cash(sum(cats.map(c => c[1]))) } } } } },
+    tooltip: { y: { formatter: v => fmt.money(v) } },
+    table: { label: 'Category', value: 'Amount', format: v => fmt.money(v) },
+  });
+  $('#expense-list').innerHTML = cats.map(([n, v, c]) => `<li class="list-item"><span class="dot" style="--c:var(${c})"></span><span class="list-body text-sm fw-600">${n}</span><span class="list-end">${fmt.cash(v)}</span></li>`).join('');
+
+  $('#accounts').innerHTML = [['bank', 'info', 'Operating account', '•••• 4821', 842310.18], ['piggy-bank', 'success', 'Savings reserve', '•••• 7730', 412000], ['credit-card', 'violet', 'Corporate card', '•••• 1024', -18750.24], ['globe-hemisphere-west', 'warning', 'EUR account', '•••• 3391', 49000.48]]
+    .map(([i, t, n, num, v]) => `<li class="list-item"><span class="icon-tile sm tone-${t}"><i class="ph ph-${i}"></i></span><span class="list-body"><span class="list-title">${n}</span><span class="list-meta">${num}</span></span><span class="list-end ${v < 0 ? 'text-danger' : ''}">${fmt.money(v, 2)}</span></li>`).join('');
+
+  const margins = profit.map((p, i) => +(p / income[i] * 100).toFixed(1));
+  $('#margin-now').textContent = `${margins[margins.length - 1]}% this month`;
+  chart('#margin-chart', {
+    chart: { type: 'area', height: 300 },
+    series: [{ name: 'Net margin', data: margins }],
+    colors: ['--chart-3'],
+    fill: areaFill,
+    markers: { size: 4, hover: { size: 6 } },
+    xaxis: { categories: DB.months },
+    yaxis: { labels: { formatter: v => `${v.toFixed(0)}%` } },
+    tooltip: { y: { formatter: v => `${v}%` } },
+    table: { format: v => `${v}%` },
+  });
+
+  table('#transactions', {
+    data: DB.transactions.map(t => ({ ...t, type: t.amount >= 0 ? 'in' : 'out' })), caption: 'Transactions', pageSize: 8, sort: ['date', 'desc'], rowClick: false,
+    search: ['description', 'category', 'reference', 'account'],
+    columns: [
+      { key: 'description', label: 'Description', sortable: true, cls: 'cell-main', render: t => `<div class="cell-user"><span class="icon-tile sm tone-${t.amount >= 0 ? 'success' : 'neutral'}"><i class="ph ph-arrow-${t.amount >= 0 ? 'down-left' : 'up-right'}"></i></span><div><strong>${esc(t.description)}</strong><small>${t.reference}</small></div></div>` },
+      { key: 'category', label: 'Category', sortable: true, render: t => `<span class="badge">${esc(t.category)}</span>` },
+      { key: 'account', label: 'Account', sortable: true, cls: 'col-xl', render: t => `<span class="nowrap">${esc(t.account)}</span>` },
+      { key: 'date', label: 'Date', sortable: true, render: t => `<span class="nowrap">${fmt.date(t.date)}</span>` },
+      { key: 'status', label: 'Status', sortable: true, render: t => badge(t.status) },
+      { key: 'amount', label: 'Amount', sortable: true, cls: 'num', render: t => `<span class="fw-700 ${t.amount >= 0 ? 'text-success' : ''}">${t.amount >= 0 ? '+' : '−'}${fmt.money(Math.abs(t.amount), 2)}</span>` },
+    ],
+  });
+</script>
+</body>
+</html>

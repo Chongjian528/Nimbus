@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Suppliers · Nimbus Admin</title>
+  <meta name="description" content="Suppliers — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Inventory</span><span aria-current="page">Suppliers</span></nav>
+          <h1 class="page-title">Suppliers</h1>
+          <p class="page-subtitle">Vendor directory with delivery performance and spend.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" type="button" data-modal="#supplier-modal"><i class="ph ph-plus"></i>Add supplier</button>
+        </div>
+      </div>
+
+      <section class="row stretch">
+        <div class="card xl-8">
+          <div class="card-header"><div><h2 class="card-title">On-time delivery</h2><p class="card-subtitle">Share of purchase orders delivered by the expected date</p></div></div>
+          <div class="card-body"><div id="ontime-chart" class="chart" style="--chart-h:300px"></div></div>
+        </div>
+        <div class="card xl-4">
+          <div class="card-header"><div><h2 class="card-title">Spend by category</h2><p class="card-subtitle">Year to date</p></div></div>
+          <div class="card-body stack-sm" id="spend"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="table-toolbar">
+          <div class="input-icon"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" id="q" placeholder="Search suppliers…" aria-label="Search suppliers"></div>
+          <select class="select" id="cat" aria-label="Filter by category"><option value="all">All categories</option></select>
+          <select class="select" id="sort" aria-label="Sort suppliers"><option value="spend">Highest spend</option><option value="rating">Best rated</option><option value="onTime">Most reliable</option><option value="leadTime">Fastest lead time</option></select>
+        </div>
+      </section>
+
+      <section class="auto-grid" id="grid" style="--min:300px" aria-label="Suppliers"></section>
+
+      <dialog class="modal modal-lg" id="supplier-modal" aria-labelledby="sup-title">
+        <form class="modal-form" data-validate novalidate id="supplier-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="sup-title">Add supplier</h2><p class="modal-desc">Suppliers can be used on purchase orders right away.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body form-grid cols-2">
+            <div class="field"><label class="label" for="s-name">Company name <span class="req">*</span></label><input class="input" id="s-name" name="name" required></div>
+            <div class="field"><label class="label" for="s-cat">Category</label><select class="select" id="s-cat" name="category"></select></div>
+            <div class="field"><label class="label" for="s-contact">Contact person <span class="req">*</span></label><input class="input" id="s-contact" name="contact" required autocomplete="name"></div>
+            <div class="field"><label class="label" for="s-email">Contact email <span class="req">*</span></label><input class="input" id="s-email" name="email" type="email" required></div>
+            <div class="field"><label class="label" for="s-country">Country</label><input class="input" id="s-country" name="country" autocomplete="country-name"></div>
+            <div class="field"><label class="label" for="s-lead">Lead time (days)</label><input class="input" id="s-lead" name="leadTime" type="number" min="1" max="120" value="14" inputmode="numeric"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Add supplier</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/plugins/apexcharts/apexcharts.min.js"></script>
+<script>
+  const { fmt, esc, avatar, badge, chart, toast, $ } = App;
+  const suppliers = DB.suppliers;
+  const cats = [...new Set(suppliers.map(s => s.category))].sort();
+  $('#cat').insertAdjacentHTML('beforeend', cats.map(c => `<option>${c}</option>`).join(''));
+  $('#s-cat').innerHTML = cats.map(c => `<option>${c}</option>`).join('');
+  const stars = r => `<span class="rating" aria-label="Rated ${r.toFixed(1)} out of 5">${[1, 2, 3, 4, 5].map(i => `<i class="ph${r >= i - 0.25 ? '-fill' : ''} ph-star"></i>`).join('')}<span>${r.toFixed(1)}</span></span>`;
+
+  function render() {
+    const q = $('#q').value.trim().toLowerCase(), cat = $('#cat').value, key = $('#sort').value;
+    const items = suppliers.filter(s => (!q || (s.name + s.contact + s.country).toLowerCase().includes(q)) && (cat === 'all' || s.category === cat))
+      .sort((a, b) => key === 'leadTime' ? a.leadTime - b.leadTime : b[key] - a[key]);
+    $('#grid').innerHTML = items.map(s => `
+      <article class="card folder-card">
+        <div class="flex items-start gap-3">
+          <span class="icon-tile lg tone-${App.toneOf(s.name)}" aria-hidden="true" style="font-size:1.125rem;font-weight:800">${App.initials(s.name)}</span>
+          <div class="grow"><h2 class="fw-700">${esc(s.name)}</h2><p class="text-xs text-3">${esc(s.country)} · Since ${new Date(s.since).getFullYear()}</p><div class="mt-1">${stars(s.rating)}</div></div>
+          ${badge(s.status)}
+        </div>
+        <div class="flex wrap gap-2"><span class="badge tone-primary">${esc(s.category)}</span><span class="badge">${s.openPOs} open POs</span></div>
+        <div class="mini-stats cols-4" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+          <div class="mini-stat"><small>On time</small><strong>${s.onTime}%</strong></div>
+          <div class="mini-stat"><small>Lead time</small><strong>${s.leadTime}d</strong></div>
+          <div class="mini-stat"><small>Spend YTD</small><strong>${fmt.cash(s.spend)}</strong></div>
+        </div>
+        <div class="flex items-center gap-2" style="padding-top:12px;border-top:1px solid var(--border)">
+          ${avatar(s.contact, 'avatar-sm')}<div class="grow" style="min-width:0"><p class="text-sm fw-600 truncate">${esc(s.contact)}</p><p class="text-xs text-3 truncate">${esc(s.email)}</p></div>
+          <a class="btn btn-ghost btn-icon btn-sm" href="mailto:${esc(s.email)}" aria-label="Email ${esc(s.contact)}"><i class="ph ph-envelope-simple"></i></a>
+          <a class="btn btn-soft btn-sm" href="purchase-orders.html"><i class="ph ph-plus"></i>PO</a>
+        </div>
+      </article>`).join('') || `<div class="card empty" style="grid-column:1/-1"><span class="icon-tile tone-neutral"><i class="ph ph-storefront"></i></span><h3>No suppliers found</h3><p>Try a different search or category.</p></div>`;
+  }
+  ['q', 'cat', 'sort'].forEach(id => $('#' + id).addEventListener(id === 'q' ? 'input' : 'change', render));
+  render();
+
+  const ranked = [...suppliers].sort((a, b) => b.onTime - a.onTime);
+  chart('#ontime-chart', {
+    chart: { type: 'bar', height: 300 },
+    series: [{ name: 'On-time delivery', data: ranked.map(s => s.onTime) }],
+    colors: ['--chart-3'],
+    plotOptions: { bar: { columnWidth: '48%' } },
+    xaxis: { categories: ranked.map(s => s.name.split(' ')[0]), labels: { rotate: -35, rotateAlways: false, hideOverlappingLabels: false, trim: true } },
+    yaxis: { min: 70, max: 100, labels: { formatter: v => `${v}%` } },
+    annotations: { yaxis: [{ y: 95, borderColor: '--text-3', strokeDashArray: 0, label: { text: 'Target 95%', borderWidth: 0, style: { background: 'transparent', color: '--text-2', fontWeight: 600 } } }] },
+    tooltip: { y: { formatter: v => `${v}%` } },
+    table: { format: v => `${v}%` },
+  });
+
+  const spend = {};
+  suppliers.forEach(s => { spend[s.category] = (spend[s.category] || 0) + s.spend; });
+  const total = Object.values(spend).reduce((a, b) => a + b, 0);
+  $('#spend').innerHTML = Object.entries(spend).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([c, v], i) => `
+    <div class="progress-row"><div class="label-row"><span class="fw-600">${c}</span><span>${fmt.cash(v)}</span></div>
+    <progress class="progress ${['', 'bar-violet', 'bar-info', 'bar-success', 'bar-warning', 'bar-pink'][i]}" value="${Math.round(v / total * 100)}" max="45" aria-label="${c} share of spend"></progress></div>`).join('');
+
+  $('#supplier-form').addEventListener('valid', e => {
+    const d = e.detail;
+    suppliers.unshift({ id: `SUP-${suppliers.length + 1}`, ...d, leadTime: +d.leadTime, rating: 4.0, onTime: 95, openPOs: 0, spend: 0, status: 'Active', since: new Date().toISOString(), phone: '' });
+    render(); toast(`${d.name} added to suppliers`);
+  });
+</script>
+</body>
+</html>

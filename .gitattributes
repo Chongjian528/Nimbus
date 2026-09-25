@@ -1,0 +1,2 @@
+# Keep third-party files byte-identical to upstream (no line-ending conversion)
+assets/plugins/** -text

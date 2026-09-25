@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Projects · Nimbus Admin</title>
+  <meta name="description" content="Projects — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Workspace</span><span aria-current="page">Projects</span></nav>
+          <h1 class="page-title">Projects</h1>
+          <p class="page-subtitle">Delivery status, budgets and teams at a glance.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-secondary" href="tasks.html"><i class="ph ph-kanban"></i>Task board</a>
+          <button class="btn btn-primary" type="button" data-modal="#project-modal"><i class="ph ph-plus"></i>New project</button>
+        </div>
+      </div>
+
+      <section class="row" aria-label="Project summary" id="kpis"></section>
+
+      <div class="flex wrap items-center gap-3">
+        <div class="segmented" data-segmented id="filter" aria-label="Filter projects">
+          <button type="button" aria-pressed="true" data-value="all">All</button>
+          <button type="button" aria-pressed="false" data-value="Active">Active</button>
+          <button type="button" aria-pressed="false" data-value="At risk">At risk</button>
+          <button type="button" aria-pressed="false" data-value="On hold">On hold</button>
+          <button type="button" aria-pressed="false" data-value="Completed">Completed</button>
+        </div>
+        <div class="input-icon ml-auto" style="flex:0 1 280px"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" id="q" placeholder="Search projects…" aria-label="Search projects"></div>
+      </div>
+
+      <section class="auto-grid" id="grid" style="--min:300px" aria-label="Projects"></section>
+
+      <dialog class="modal" id="project-modal" aria-labelledby="proj-title">
+        <form class="modal-form" data-validate novalidate id="project-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="proj-title">New project</h2><p class="modal-desc">Set a budget and deadline to track progress.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body form-grid cols-2">
+            <div class="field span-all"><label class="label" for="p-name">Project name <span class="req">*</span></label><input class="input" id="p-name" name="name" required></div>
+            <div class="field"><label class="label" for="p-client">Client</label><input class="input" id="p-client" name="client" list="clients" placeholder="Internal"><datalist id="clients"></datalist></div>
+            <div class="field"><label class="label" for="p-due">Due date <span class="req">*</span></label><input class="input" id="p-due" name="due" type="date" required></div>
+            <div class="field"><label class="label" for="p-budget">Budget</label><div class="input-group"><span class="addon">$</span><input class="input" id="p-budget" name="budget" type="number" min="0" step="1000" inputmode="numeric"></div></div>
+            <div class="field"><label class="label" for="p-color">Color</label><select class="select" id="p-color" name="tone"><option value="primary">Indigo</option><option value="violet">Violet</option><option value="success">Green</option><option value="info">Sky</option><option value="pink">Pink</option><option value="warning">Amber</option></select></div>
+            <fieldset class="field span-all" style="border:0;padding:0;margin:0"><legend class="label mb-2">Team</legend><div class="flex wrap gap-2" id="team-picker"></div></fieldset>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Create project</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { fmt, esc, avatars, badge, rowMenu, toast, confirm, $ } = App;
+  const projects = DB.projects;
+  let status = 'all';
+
+  function renderKpis() {
+    const active = projects.filter(p => p.status !== 'Completed');
+    const budget = active.reduce((s, p) => s + p.budget, 0), spent = active.reduce((s, p) => s + p.spent, 0);
+    $('#kpis').innerHTML = [['Active projects', active.length, 'folder-open', 'primary'], ['On track', `${Math.round(active.filter(p => p.status === 'Active').length / Math.max(1, active.length) * 100)}%`, 'target', 'success'],
+      ['Hours this week', '312.5', 'timer', 'info'], ['Budget used', `${Math.round(spent / budget * 100)}%`, 'wallet', 'warning']]
+      .map(([k, v, i, t]) => `<article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-${t}"><i class="ph ph-${i}"></i></span><div class="grow"><h2 class="stat-label">${k}</h2><p class="stat-value">${v}</p></div></article>`).join('');
+  }
+  function render() {
+    const q = $('#q').value.trim().toLowerCase();
+    const items = projects.filter(p => (status === 'all' || p.status === status) && (!q || (p.name + p.client).toLowerCase().includes(q)));
+    $('#grid').innerHTML = items.map(p => {
+      const used = Math.round(p.spent / p.budget * 100), days = Math.round((new Date(p.due) - Date.now()) / 864e5);
+      const bar = p.status === 'At risk' ? 'bar-danger' : p.status === 'Completed' ? 'bar-success' : p.status === 'On hold' ? 'bar-warning' : '';
+      return `<article class="card folder-card" data-id="${p.id}">
+        <div class="flex items-start gap-3">
+          <span class="icon-tile tone-${p.tone}"><i class="ph ph-${p.icon}"></i></span>
+          <div class="grow" style="min-width:0"><h2 class="fw-700 truncate">${esc(p.name)}</h2><p class="text-xs text-3">${esc(p.client)}</p></div>
+          ${rowMenu([{ label: 'Open task board', icon: 'kanban', href: 'tasks.html' }, { label: 'Mark completed', icon: 'check-circle', action: 'complete' }, { label: 'Put on hold', icon: 'pause-circle', action: 'hold' }, '-', { label: 'Archive', icon: 'archive', action: 'archive', danger: true }], `Actions for ${p.name}`)}
+        </div>
+        <div class="flex wrap gap-2">${badge(p.status)}<span class="badge"><i class="ph ph-calendar-blank"></i>${p.status === 'Completed' ? `Done ${fmt.day(p.due)}` : days < 0 ? `${-days}d overdue` : `Due in ${days}d`}</span></div>
+        <div class="progress-row"><div class="label-row"><span class="text-2">Progress</span><span>${p.progress}%</span></div><progress class="progress ${bar}" value="${p.progress}" max="100" aria-label="${esc(p.name)} progress"></progress></div>
+        <div class="mini-stats"><div class="mini-stat"><small>Tasks</small><strong>${p.tasks.done}/${p.tasks.total}</strong></div><div class="mini-stat"><small>Budget used</small><strong class="${used > 100 ? 'text-danger' : ''}">${used}%</strong></div></div>
+        <div class="flex items-center justify-between" style="padding-top:12px;border-top:1px solid var(--border)">${avatars(p.team, 4, 'avatar-xs')}<span class="text-xs text-3">${fmt.cash(p.spent)} of ${fmt.cash(p.budget)}</span></div>
+      </article>`;
+    }).join('') || `<div class="card empty" style="grid-column:1/-1"><span class="icon-tile tone-neutral"><i class="ph ph-folder-simple"></i></span><h3>No projects here</h3><p>Try another filter or create a new project.</p></div>`;
+  }
+  renderKpis(); render();
+  $('#filter').addEventListener('segment', e => { status = e.detail; render(); });
+  $('#q').addEventListener('input', render);
+  $('#grid').addEventListener('click', async e => {
+    const b = e.target.closest('[data-row-action]');
+    if (!b) return;
+    const p = projects.find(x => x.id === b.closest('[data-id]').dataset.id), act = b.dataset.rowAction;
+    if (act === 'complete') { p.status = 'Completed'; p.progress = 100; p.tasks.done = p.tasks.total; toast(`${p.name} completed`, { title: 'Nice work!' }); }
+    if (act === 'hold') { p.status = 'On hold'; toast(`${p.name} is on hold`, { type: 'warning' }); }
+    if (act === 'archive' && await confirm({ title: 'Archive project?', text: `${p.name} will be hidden from active lists. You can restore it later.`, confirm: 'Archive' })) { projects.splice(projects.indexOf(p), 1); toast(`${p.name} archived`); }
+    render(); renderKpis();
+  });
+
+  $('#clients').innerHTML = DB.customers.map(c => `<option value="${esc(c.company)}">`).join('');
+  $('#p-due').defaultValue = DB.ymd(new Date(Date.now() + 60 * 864e5));
+  $('#team-picker').innerHTML = DB.employees.slice(0, 10).map(e => `<label class="chip" style="cursor:pointer"><input type="checkbox" name="team" value="${esc(e.name)}" style="width:16px;height:16px">${esc(e.name.split(' ')[0])}</label>`).join('');
+  $('#project-form').addEventListener('valid', e => {
+    const f = e.target, team = [...f.querySelectorAll('[name="team"]:checked')].map(i => i.value), d = e.detail;
+    projects.unshift({ id: `PRJ-${400 + projects.length}`, name: d.name, client: d.client || 'Internal', status: 'Active', progress: 0, tone: d.tone, icon: 'rocket-launch',
+      due: new Date(d.due + 'T12:00').toISOString(), budget: +d.budget || 10000, spent: 0, team: team.length ? team : [App.me.name], tasks: { done: 0, total: 0 } });
+    render(); renderKpis(); toast(`${d.name} created`, { title: 'Project created' });
+  });
+</script>
+</body>
+</html>

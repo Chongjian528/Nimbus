@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Profile · Nimbus Admin</title>
+  <meta name="description" content="My Profile — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <section class="card" aria-label="Profile header">
+        <div class="profile-cover"></div>
+        <div class="profile-head">
+          <span id="p-avatar"></span>
+          <div class="grow" style="min-width:220px">
+            <div class="flex items-center gap-2 wrap"><h1 id="p-name"></h1><span class="badge tone-primary"><i class="ph ph-crown-simple"></i>Administrator</span></div>
+            <p class="text-sm text-2 mt-1">Operations Director · <i class="ph ph-map-pin"></i> Austin, US · Joined March 2021</p>
+          </div>
+          <div class="flex gap-2 wrap">
+            <button class="btn btn-secondary" type="button" data-action="copy" data-copy="https://nimbus.io/u/olivia"><i class="ph ph-link-simple"></i>Copy link</button>
+            <button class="btn btn-primary" type="button" data-modal="#edit-modal"><i class="ph ph-pencil-simple"></i>Edit profile</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="row">
+        <div class="xl-4 stack">
+          <section class="card">
+            <div class="card-header"><h2 class="card-title">About</h2></div>
+            <div class="card-body stack-sm">
+              <p class="text-sm text-2" id="bio">I lead operations at Nimbus — keeping orders flowing, stock balanced and our finance team happy. Coffee enthusiast and spreadsheet optimist.</p>
+              <ul class="info-list">
+                <li><i class="ph ph-envelope-simple"></i><div><small>Email</small><span id="p-email"></span></div></li>
+                <li><i class="ph ph-phone"></i><div><small>Phone</small>+1 (512) 555-0198</div></li>
+                <li><i class="ph ph-buildings"></i><div><small>Department</small>Operations</div></li>
+                <li><i class="ph ph-user-circle"></i><div><small>Reports to</small>Ryan Cooper, CEO</div></li>
+                <li><i class="ph ph-clock"></i><div><small>Local time</small><span id="p-time"></span></div></li>
+              </ul>
+            </div>
+          </section>
+          <section class="card">
+            <div class="card-header"><h2 class="card-title">Skills</h2></div>
+            <div class="card-body flex wrap gap-2">
+              <span class="chip">Supply chain</span><span class="chip">Forecasting</span><span class="chip">Negotiation</span><span class="chip">ERP rollout</span><span class="chip">Team leadership</span><span class="chip">Lean ops</span>
+            </div>
+          </section>
+          <section class="card">
+            <div class="card-header"><h2 class="card-title">This quarter</h2></div>
+            <div class="card-body"><div class="mini-stats">
+              <div class="mini-stat"><small>Approvals</small><strong>184</strong></div>
+              <div class="mini-stat"><small>Tasks done</small><strong>62</strong></div>
+              <div class="mini-stat"><small>Cost savings</small><strong>$84.2K</strong></div>
+              <div class="mini-stat"><small>Team rating</small><strong>4.9 / 5</strong></div>
+            </div></div>
+          </section>
+        </div>
+
+        <section class="card xl-8">
+          <div class="tabs" role="tablist" aria-label="Profile sections">
+            <button class="tab" role="tab" id="tab-activity" aria-controls="panel-activity" aria-selected="true">Activity</button>
+            <button class="tab" role="tab" id="tab-projects" aria-controls="panel-projects" aria-selected="false" tabindex="-1">Projects</button>
+            <button class="tab" role="tab" id="tab-team" aria-controls="panel-team" aria-selected="false" tabindex="-1">Team</button>
+          </div>
+          <div class="tab-panel card-body" role="tabpanel" id="panel-activity" aria-labelledby="tab-activity" tabindex="0"><ul class="timeline" id="activity"></ul></div>
+          <div class="tab-panel card-body" role="tabpanel" id="panel-projects" aria-labelledby="tab-projects" tabindex="0" hidden><div class="stack-sm" id="projects"></div></div>
+          <div class="tab-panel card-body" role="tabpanel" id="panel-team" aria-labelledby="tab-team" tabindex="0" hidden><div class="auto-grid" style="--min:200px" id="team"></div></div>
+        </section>
+      </div>
+
+      <dialog class="modal" id="edit-modal" aria-labelledby="edit-title">
+        <form class="modal-form" data-validate novalidate id="edit-form" data-keep>
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="edit-title">Edit profile</h2><p class="modal-desc">This information is visible to your workspace.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body form-grid cols-2">
+            <div class="field"><label class="label" for="e-name">Display name</label><input class="input" id="e-name" name="name" required></div>
+            <div class="field"><label class="label" for="e-title">Job title</label><input class="input" id="e-title" name="title" value="Operations Director"></div>
+            <div class="field span-all"><label class="label" for="e-bio">Bio</label><textarea class="textarea" id="e-bio" name="bio" maxlength="280"></textarea><p class="hint">Up to 280 characters.</p></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Save profile</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { fmt, esc, avatar, avatars, badge, toast, me, $ } = App;
+  $('#p-avatar').innerHTML = avatar(me.name, 'avatar-xl');
+  $('#p-name').textContent = me.name;
+  $('#p-email').textContent = me.email;
+  const tick = () => { $('#p-time').textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Chicago' }) + ' (Central Time)'; };
+  tick(); setInterval(tick, 30000);
+
+  const acts = [
+    ['check-circle', 'success', 'Approved 4 expense reports', 'Total $3,284.50 · Finance', 97],
+    ['truck', 'info', 'Created purchase order PO-3420', 'Nordic Furniture Works · 120 units', 240],
+    ['chat-circle-dots', 'violet', 'Commented on “Warehouse Automation”', '“Let’s pilot the scanners in Austin first.”', 1300],
+    ['user-plus', 'pink', 'Invited Nora Mitchell to Finance', 'Role: Finance', 2900],
+    ['file-text', 'primary', 'Generated the September sales report', 'PDF · 18 pages', 4400],
+    ['shield-check', 'neutral', 'Enabled two-factor authentication', 'Security settings', 9000],
+  ];
+  $('#activity').innerHTML = acts.map(([i, t, title, meta, m]) => `<li class="timeline-item"><span class="timeline-icon tone-${t}"><i class="ph ph-${i}"></i></span><div><p class="timeline-title">${title}</p><p class="timeline-text">${esc(meta)}</p><p class="timeline-meta">${fmt.ago(new Date(Date.now() - m * 60000))}</p></div></li>`).join('');
+  $('#projects').innerHTML = DB.projects.slice(0, 5).map(p => `
+    <div class="flex items-center gap-3 wrap" style="padding:14px;border:1px solid var(--border);border-radius:14px">
+      <span class="icon-tile sm tone-${p.tone}"><i class="ph ph-${p.icon}"></i></span>
+      <div class="grow" style="min-width:160px"><p class="fw-600">${esc(p.name)}</p><p class="text-xs text-3">${esc(p.client)} · due ${fmt.date(p.due)}</p></div>
+      <div style="width:160px" class="progress-row"><div class="label-row text-xs"><span class="text-3">Progress</span><span>${p.progress}%</span></div><progress class="progress sm" value="${p.progress}" max="100" aria-label="${esc(p.name)} progress"></progress></div>
+      ${badge(p.status)}</div>`).join('');
+  $('#team').innerHTML = DB.employees.filter(e => e.department === 'Operations' || e.department === 'Finance').map(e => `
+    <div class="flex items-center gap-3" style="padding:12px;border:1px solid var(--border);border-radius:14px">${avatar(e.name)}<div style="min-width:0"><p class="fw-600 truncate">${esc(e.name)}</p><p class="text-xs text-3 truncate">${esc(e.role)}</p></div></div>`).join('');
+
+  const f = $('#edit-form');
+  f.elements.name.value = me.name;
+  f.elements.bio.value = $('#bio').textContent;
+  f.addEventListener('valid', e => { $('#p-name').textContent = e.detail.name; $('#bio').textContent = e.detail.bio; toast('Profile updated'); });
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Add Product · Nimbus Admin</title>
+  <meta name="description" content="Add Product — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <form id="product-form" data-validate novalidate data-keep class="stack">
+        <div class="page-header">
+          <div>
+            <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><a href="products.html">Products</a><span aria-current="page">Add product</span></nav>
+            <h1 class="page-title">Add product</h1>
+            <p class="page-subtitle">Fill in the details below — the preview updates as you type.</p>
+          </div>
+          <div class="page-actions">
+            <a class="btn btn-ghost" href="products.html">Discard</a>
+            <button class="btn btn-secondary" type="button" id="save-draft"><i class="ph ph-floppy-disk"></i>Save draft</button>
+            <button class="btn btn-primary" type="submit"><i class="ph ph-check"></i>Publish product</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="xl-8 stack">
+            <section class="card" aria-labelledby="general-title">
+              <div class="card-header"><div><h2 class="card-title" id="general-title">General information</h2><p class="card-subtitle">Name and description shown to customers</p></div></div>
+              <div class="card-body form-grid cols-2">
+                <div class="field span-all"><label class="label" for="p-name">Product name <span class="req">*</span></label><input class="input" id="p-name" name="name" required minlength="3" maxlength="80" placeholder="e.g. Aurora Wireless Headphones"></div>
+                <div class="field"><label class="label" for="p-sku">SKU <span class="req">*</span></label><input class="input" id="p-sku" name="sku" required pattern="[A-Z]{3}-[0-9]{3}" placeholder="AUD-025" data-error="Use the format ABC-123."><p class="hint">Three letters, a dash and three digits.</p></div>
+                <div class="field"><label class="label" for="p-barcode">Barcode (GTIN)</label><input class="input" id="p-barcode" name="barcode" inputmode="numeric" pattern="[0-9]{8,14}" placeholder="0123456789012" data-error="Barcodes are 8–14 digits."></div>
+                <div class="field span-all">
+                  <div class="label-row"><label class="label" for="p-desc">Description</label><span class="hint" id="desc-count">0 / 600</span></div>
+                  <textarea class="textarea" id="p-desc" name="description" maxlength="600" placeholder="What makes this product special?"></textarea>
+                </div>
+              </div>
+            </section>
+
+            <section class="card" aria-labelledby="media-title">
+              <div class="card-header"><div><h2 class="card-title" id="media-title">Media</h2><p class="card-subtitle">PNG or JPG, up to 5 MB each</p></div></div>
+              <div class="card-body stack-sm">
+                <label class="dropzone" id="dropzone" for="p-images">
+                  <span class="icon-tile tone-primary"><i class="ph ph-cloud-arrow-up"></i></span>
+                  <strong>Drag images here or click to upload</strong>
+                  <span class="hint">The first image becomes the cover</span>
+                  <input id="p-images" type="file" accept="image/*" multiple>
+                </label>
+                <div class="thumbs" id="thumbs"></div>
+              </div>
+            </section>
+
+            <section class="card" aria-labelledby="pricing-title">
+              <div class="card-header"><div><h2 class="card-title" id="pricing-title">Pricing</h2><p class="card-subtitle">Margin is calculated automatically</p></div></div>
+              <div class="card-body form-grid cols-3">
+                <div class="field"><label class="label" for="p-price">Price <span class="req">*</span></label><div class="input-group"><span class="addon">$</span><input class="input" id="p-price" name="price" type="number" min="0.01" step="0.01" required inputmode="decimal" placeholder="0.00"></div></div>
+                <div class="field"><label class="label" for="p-compare">Compare-at price</label><div class="input-group"><span class="addon">$</span><input class="input" id="p-compare" name="compare" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div></div>
+                <div class="field"><label class="label" for="p-cost">Cost per item</label><div class="input-group"><span class="addon">$</span><input class="input" id="p-cost" name="cost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div></div>
+                <div class="field"><label class="label" for="p-tax">Tax class</label><select class="select" id="p-tax" name="tax"><option>Standard (8%)</option><option>Reduced (5%)</option><option>Tax exempt</option></select></div>
+                <div class="field"><span class="label">Margin</span><div class="flex items-center gap-3" style="height:var(--control-h)"><progress class="progress bar-success grow" id="margin-bar" value="0" max="100" aria-label="Profit margin"></progress><span class="fw-700 tabular" id="margin">—</span></div></div>
+              </div>
+            </section>
+
+            <section class="card" aria-labelledby="inv-title">
+              <div class="card-header"><div><h2 class="card-title" id="inv-title">Inventory</h2><p class="card-subtitle">Stock levels and warehouse</p></div></div>
+              <div class="card-body stack-sm">
+                <div class="form-grid cols-3">
+                  <div class="field"><label class="label" for="p-qty">Quantity on hand</label><input class="input" id="p-qty" name="qty" type="number" min="0" value="0" inputmode="numeric"></div>
+                  <div class="field"><label class="label" for="p-reorder">Reorder point</label><input class="input" id="p-reorder" name="reorder" type="number" min="0" value="20" inputmode="numeric"></div>
+                  <div class="field"><label class="label" for="p-wh">Warehouse</label><select class="select" id="p-wh" name="warehouse"></select></div>
+                </div>
+                <div class="setting-row"><div><strong>Track inventory</strong><small>Reduce stock automatically when orders are placed</small></div><input class="switch" type="checkbox" role="switch" name="track" checked aria-label="Track inventory"></div>
+                <div class="setting-row"><div><strong>Allow backorders</strong><small>Keep selling when the item is out of stock</small></div><input class="switch" type="checkbox" role="switch" name="backorder" aria-label="Allow backorders"></div>
+              </div>
+            </section>
+
+            <section class="card" aria-labelledby="variants-title">
+              <div class="card-header"><div><h2 class="card-title" id="variants-title">Variants</h2><p class="card-subtitle">Colors and sizes customers can choose</p></div></div>
+              <div class="card-body stack-sm">
+                <div class="field"><span class="label">Colors</span><div class="flex wrap gap-2" id="colors"></div></div>
+                <div class="field"><label class="label" for="variant-input">Add option</label>
+                  <div class="flex gap-2"><input class="input" id="variant-input" placeholder="e.g. Midnight Blue"><button class="btn btn-soft" type="button" id="add-variant"><i class="ph ph-plus"></i>Add</button></div></div>
+              </div>
+            </section>
+          </div>
+
+          <div class="xl-4 stack" style="align-self:stretch">
+            <section class="card" aria-labelledby="status-title">
+              <div class="card-header"><h2 class="card-title" id="status-title">Status</h2><span class="badge badge-dot tone-warning" id="status-badge">Draft</span></div>
+              <div class="card-body stack-sm">
+                <label class="option-card"><input type="radio" name="visibility" value="Active" checked><span><strong>Published</strong><small>Visible in all sales channels</small></span></label>
+                <label class="option-card"><input type="radio" name="visibility" value="Scheduled"><span><strong>Scheduled</strong><small>Goes live on a chosen date</small></span></label>
+                <label class="option-card"><input type="radio" name="visibility" value="Hidden"><span><strong>Hidden</strong><small>Only visible to your team</small></span></label>
+              </div>
+            </section>
+            <section class="card" aria-labelledby="org-title">
+              <div class="card-header"><h2 class="card-title" id="org-title">Organization</h2></div>
+              <div class="card-body stack-sm">
+                <div class="field"><label class="label" for="p-cat">Category <span class="req">*</span></label><select class="select" id="p-cat" name="category" required data-error="Choose a category."><option value="">Select…</option></select></div>
+                <div class="field"><label class="label" for="p-supplier">Supplier</label><select class="select" id="p-supplier" name="supplier"></select></div>
+                <div class="field"><label class="label" for="p-tags">Tags</label><input class="input" id="p-tags" name="tags" placeholder="wireless, bestseller"><p class="hint">Separate tags with commas.</p></div>
+              </div>
+            </section>
+            <section class="card" aria-labelledby="preview-title" style="position:sticky;top:calc(var(--topbar-h) + 24px)">
+              <div class="card-header"><h2 class="card-title" id="preview-title">Live preview</h2></div>
+              <div class="card-body">
+                <article class="card product-card" style="box-shadow:none">
+                  <div class="product-media tone-primary" id="pv-media"><i class="ph ph-package"></i></div>
+                  <div class="product-body">
+                    <p class="text-xs text-3 fw-600" id="pv-cat">Category</p>
+                    <h3 id="pv-name">Product name</h3>
+                    <div class="product-foot"><span class="price" id="pv-price">$0.00</span><s class="text-xs text-3" id="pv-compare"></s></div>
+                  </div>
+                </article>
+              </div>
+            </section>
+          </div>
+        </div>
+      </form>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { fmt, esc, toast, $ } = App;
+  const f = $('#product-form');
+  const cats = [...new Set(DB.products.map(p => p.category))].sort();
+  $('#p-cat').insertAdjacentHTML('beforeend', cats.map(c => `<option>${c}</option>`).join(''));
+  $('#p-supplier').innerHTML = DB.suppliers.map(s => `<option>${esc(s.name)}</option>`).join('');
+  $('#p-wh').innerHTML = DB.warehouses.map(w => `<option>${esc(w.name)}</option>`).join('');
+
+  // Live preview + margin
+  const catIcon = Object.fromEntries(DB.products.map(p => [p.category, [p.icon, p.tone]]));
+  function preview() {
+    const price = +f.elements.price.value || 0, compare = +f.elements.compare.value || 0, cost = +f.elements.cost.value || 0;
+    $('#pv-name').textContent = f.elements.name.value || 'Product name';
+    $('#pv-cat').textContent = f.elements.category.value || 'Category';
+    $('#pv-price').textContent = fmt.money(price, 2);
+    $('#pv-compare').textContent = compare > price ? fmt.money(compare, 2) : '';
+    const [icon, tone] = catIcon[f.elements.category.value] || ['package', 'primary'];
+    if (!$('#pv-media img')) { $('#pv-media').className = `product-media tone-${tone}`; $('#pv-media').innerHTML = `<i class="ph ph-${icon}" aria-hidden="true"></i>`; }
+    const m = price && cost ? Math.round((price - cost) / price * 100) : null;
+    $('#margin').textContent = m === null ? '—' : `${m}%`;
+    $('#margin-bar').value = Math.max(0, m || 0);
+    $('#desc-count').textContent = `${f.elements.description.value.length} / 600`;
+  }
+  f.addEventListener('input', preview);
+  f.addEventListener('change', e => {
+    if (e.target.name === 'visibility') { const b = $('#status-badge'); b.textContent = { Active: 'Published', Scheduled: 'Scheduled', Hidden: 'Hidden' }[e.target.value]; b.className = `badge badge-dot tone-${e.target.value === 'Active' ? 'success' : e.target.value === 'Scheduled' ? 'info' : 'neutral'}`; }
+  });
+  preview();
+
+  // Image upload with drag & drop previews (object URLs, nothing leaves the browser)
+  const thumbs = [];
+  function addFiles(files) {
+    [...files].filter(file => file.type.startsWith('image/')).forEach(file => thumbs.push({ url: URL.createObjectURL(file), name: file.name }));
+    $('#thumbs').innerHTML = thumbs.map((t, i) => `<div class="thumb"><img src="${t.url}" alt="${esc(t.name)}"><button type="button" data-rm="${i}" aria-label="Remove ${esc(t.name)}"><i class="ph ph-x"></i></button></div>`).join('');
+    $('#pv-media').innerHTML = thumbs[0] ? `<img src="${thumbs[0].url}" alt="" style="width:100%;height:100%;object-fit:cover">` : '';
+    if (!thumbs[0]) preview();
+  }
+  const dz = $('#dropzone');
+  ['dragenter', 'dragover'].forEach(t => dz.addEventListener(t, e => { e.preventDefault(); dz.classList.add('is-over'); }));
+  ['dragleave', 'drop'].forEach(t => dz.addEventListener(t, () => dz.classList.remove('is-over')));
+  dz.addEventListener('drop', e => { e.preventDefault(); addFiles(e.dataTransfer.files); });
+  $('#p-images').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
+  $('#thumbs').addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (b) { URL.revokeObjectURL(thumbs[b.dataset.rm].url); thumbs.splice(+b.dataset.rm, 1); addFiles([]); } });
+
+  // Variant chips
+  const colors = ['Midnight', 'Cloud White', 'Sage'];
+  const renderColors = () => { $('#colors').innerHTML = colors.map((c, i) => `<span class="chip">${esc(c)}<button class="chip-remove" type="button" data-i="${i}" aria-label="Remove ${esc(c)}"><i class="ph ph-x"></i></button></span>`).join('') || '<span class="hint">No variants yet</span>'; };
+  renderColors();
+  $('#colors').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) { colors.splice(+b.dataset.i, 1); renderColors(); } });
+  const addVariant = () => { const v = $('#variant-input').value.trim(); if (v && !colors.includes(v)) { colors.push(v); renderColors(); } $('#variant-input').value = ''; };
+  $('#add-variant').addEventListener('click', addVariant);
+  $('#variant-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addVariant(); } });
+
+  $('#save-draft').addEventListener('click', () => toast('Draft saved — you can finish it later', { type: 'info' }));
+  f.addEventListener('valid', e => {
+    toast(`${e.detail.name} is now live in your catalog`, { title: 'Product published' });
+    setTimeout(() => { location.href = 'products.html'; }, 1400);
+  });
+</script>
+</body>
+</html>

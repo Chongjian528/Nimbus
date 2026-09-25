@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deals Pipeline · Nimbus Admin</title>
+  <meta name="description" content="Deals Pipeline — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>CRM</span><span aria-current="page">Deals pipeline</span></nav>
+          <h1 class="page-title">Deals pipeline</h1>
+          <p class="page-subtitle">Drag cards between stages, or open a deal to change its stage.</p>
+        </div>
+        <div class="page-actions">
+          <select class="select" id="owner" aria-label="Filter by owner" style="width:auto"><option value="all">All owners</option></select>
+          <button class="btn btn-primary" type="button" id="add-deal"><i class="ph ph-plus"></i>Add deal</button>
+        </div>
+      </div>
+
+      <section class="row" aria-label="Pipeline summary" id="summary"></section>
+
+      <section class="kanban" id="board" aria-label="Deal stages"></section>
+
+      <dialog class="modal" id="deal-modal" aria-labelledby="deal-title">
+        <form class="modal-form" data-validate novalidate id="deal-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="deal-title">Deal</h2><p class="modal-desc" id="deal-desc"></p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="id">
+            <div class="form-grid cols-2">
+              <div class="field span-all"><label class="label" for="d-title">Deal name <span class="req">*</span></label><input class="input" id="d-title" name="title" required></div>
+              <div class="field"><label class="label" for="d-company">Company <span class="req">*</span></label><input class="input" id="d-company" name="company" required list="companies"><datalist id="companies"></datalist></div>
+              <div class="field"><label class="label" for="d-value">Value <span class="req">*</span></label><div class="input-group"><span class="addon">$</span><input class="input" id="d-value" name="value" type="number" min="1" step="100" required inputmode="numeric"></div></div>
+              <div class="field"><label class="label" for="d-stage">Stage</label><select class="select" id="d-stage" name="stage"></select></div>
+              <div class="field"><label class="label" for="d-close">Expected close</label><input class="input" id="d-close" name="close" type="date" required></div>
+              <div class="field"><label class="label" for="d-owner">Owner</label><select class="select" id="d-owner" name="owner"></select></div>
+              <div class="field"><label class="label" for="d-priority">Priority</label><select class="select" id="d-priority" name="priority"><option>High</option><option>Medium</option><option>Low</option></select></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-soft-danger" type="button" id="delete-deal" style="margin-right:auto"><i class="ph ph-trash"></i>Delete</button>
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Save deal</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/plugins/sortablejs/Sortable.min.js"></script>
+<script>
+  const { fmt, esc, avatar, toast, openModal, confirm, $, $$ } = App;
+  const deals = DB.deals;
+  const stages = DB.stages;
+  let ownerFilter = 'all';
+
+  const ownerOpts = DB.salesTeam.map(n => `<option>${esc(n)}</option>`).join('');
+  $('#owner').insertAdjacentHTML('beforeend', ownerOpts);
+  $('#d-owner').innerHTML = ownerOpts;
+  $('#d-stage').innerHTML = stages.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  $('#companies').innerHTML = DB.customers.map(c => `<option value="${esc(c.company)}">`).join('');
+
+  const visible = () => deals.filter(d => ownerFilter === 'all' || d.owner === ownerFilter);
+  const cardHTML = d => `
+    <article class="kanban-card" data-id="${d.id}">
+      <div class="flex justify-between items-center gap-2"><span class="badge badge-dot tone-${App.statusTone(d.priority)}">${d.priority}</span><span class="text-xs text-3">${d.id}</span></div>
+      <h3><button class="link-btn" type="button" data-open>${esc(d.title)}</button></h3>
+      <p class="text-xs text-2 flex items-center gap-1"><i class="ph ph-buildings"></i>${esc(d.company)}</p>
+      <div class="meta"><span class="fw-700 text-sm" style="color:var(--text)">${fmt.money(d.value)}</span><span><i class="ph ph-calendar-blank"></i>${fmt.day(d.close)}</span></div>
+      <div class="meta"><span>${avatar(d.owner, 'avatar-xs', true)}${esc(d.owner.split(' ')[0])}</span><span>${d.probability}% likely</span></div>
+    </article>`;
+
+  function renderSummary() {
+    const open = visible().filter(d => d.stage !== 'won');
+    const total = open.reduce((s, d) => s + d.value, 0), weighted = open.reduce((s, d) => s + d.value * d.probability / 100, 0);
+    const won = visible().filter(d => d.stage === 'won');
+    $('#summary').innerHTML = [
+      ['Open pipeline', fmt.money(total), 'funnel', 'primary'],
+      ['Weighted forecast', fmt.money(weighted), 'chart-line-up', 'violet'],
+      ['Won this quarter', fmt.money(won.reduce((s, d) => s + d.value, 0)), 'trophy', 'success'],
+      ['Average deal', fmt.money(visible().reduce((s, d) => s + d.value, 0) / Math.max(1, visible().length)), 'scales', 'warning'],
+    ].map(([k, v, i, t]) => `<article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-${t}"><i class="ph ph-${i}"></i></span><div class="grow"><h2 class="stat-label">${k}</h2><p class="stat-value">${v}</p></div></article>`).join('');
+  }
+
+  function renderBoard() {
+    $('#board').innerHTML = stages.map(s => {
+      const items = visible().filter(d => d.stage === s.id);
+      return `<div class="kanban-col" data-stage="${s.id}" role="region" aria-label="${s.name}">
+        <div class="kanban-head"><span class="dot" style="--c:var(${s.color})"></span><h2 class="kanban-title">${s.name}</h2><span class="badge">${items.length}</span>
+          <span class="kanban-sum">${fmt.cash(items.reduce((t, d) => t + d.value, 0))}</span></div>
+        <div class="kanban-list" data-stage="${s.id}">${items.map(cardHTML).join('')}</div>
+        <button class="btn kanban-add" type="button" data-add="${s.id}"><i class="ph ph-plus"></i>Add deal</button>
+      </div>`;
+    }).join('');
+    $$('.kanban-list').forEach(el => new Sortable(el, {
+      group: 'deals', animation: 180, delay: 150, delayOnTouchOnly: true, ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen', dragClass: 'sortable-drag',
+      onEnd: e => {
+        if (e.from === e.to) return;
+        const d = deals.find(x => x.id === e.item.dataset.id), s = stages.find(x => x.id === e.to.dataset.stage);
+        moveTo(d, s.id);
+      },
+    }));
+  }
+  function moveTo(d, stageId) {
+    const s = stages.find(x => x.id === stageId);
+    d.stage = s.id; d.probability = s.prob;
+    renderBoard(); renderSummary();
+    toast(s.id === 'won' ? `Deal won — ${d.company}` : `Moved to ${s.name}`, { title: d.title });
+  }
+
+  function openDeal(d, stage) {
+    const f = $('#deal-form');
+    f.reset();
+    f.elements.id.value = d?.id || '';
+    $('#deal-title').textContent = d ? d.title : 'New deal';
+    $('#deal-desc').textContent = d ? `${d.id} · ${d.company}` : 'Add an opportunity to the pipeline.';
+    $('#delete-deal').hidden = !d;
+    const v = d || { stage: stage || 'prospecting', owner: DB.salesTeam[0], priority: 'Medium', close: new Date(Date.now() + 30 * 864e5).toISOString() };
+    for (const k of ['title', 'company', 'value', 'stage', 'owner', 'priority']) if (v[k] !== undefined) f.elements[k].value = v[k];
+    f.elements.close.value = v.close.slice(0, 10);
+    openModal('#deal-modal');
+  }
+  $('#board').addEventListener('click', e => {
+    const add = e.target.closest('[data-add]');
+    if (add) return openDeal(null, add.dataset.add);
+    const card = e.target.closest('.kanban-card');
+    if (card) openDeal(deals.find(d => d.id === card.dataset.id));
+  });
+  $('#add-deal').addEventListener('click', () => openDeal());
+  $('#deal-form').addEventListener('valid', e => {
+    const x = e.detail, s = stages.find(st => st.id === x.stage);
+    const fields = { title: x.title, company: x.company, value: +x.value, stage: s.id, probability: s.prob, owner: x.owner, priority: x.priority, close: new Date(x.close + 'T12:00').toISOString() };
+    if (x.id) Object.assign(deals.find(d => d.id === x.id), fields);
+    else deals.push({ id: `DL-${600 + deals.length}`, contact: '', ...fields });
+    renderBoard(); renderSummary();
+    toast(x.id ? 'Deal updated' : 'Deal added to the pipeline', { title: x.title });
+  });
+  $('#delete-deal').addEventListener('click', async () => {
+    const id = $('#deal-form').elements.id.value, d = deals.find(x => x.id === id);
+    $('#deal-modal').close();
+    if (await confirm({ title: 'Delete this deal?', text: `${d.title} (${d.company}) will be removed from the pipeline.`, confirm: 'Delete deal' })) {
+      deals.splice(deals.indexOf(d), 1); renderBoard(); renderSummary(); toast('Deal deleted');
+    }
+  });
+  $('#owner').addEventListener('change', e => { ownerFilter = e.target.value; renderBoard(); renderSummary(); });
+
+  renderSummary();
+  renderBoard();
+</script>
+</body>
+</html>

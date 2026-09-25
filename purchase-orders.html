@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Purchase Orders · Nimbus Admin</title>
+  <meta name="description" content="Purchase Orders — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Inventory</span><span aria-current="page">Purchase orders</span></nav>
+          <h1 class="page-title">Purchase orders</h1>
+          <p class="page-subtitle">Buy from suppliers and receive stock into your warehouses.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-secondary" href="suppliers.html"><i class="ph ph-storefront"></i>Suppliers</a>
+          <button class="btn btn-primary" type="button" id="new-po"><i class="ph ph-plus"></i>Create PO</button>
+        </div>
+      </div>
+
+      <section class="row" aria-label="Purchasing summary" id="kpis"></section>
+
+      <section class="card" id="pos" aria-label="Purchase order list">
+        <div class="table-toolbar">
+          <div class="input-icon"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" placeholder="Search PO or supplier…" aria-label="Search purchase orders" data-table-search></div>
+          <select class="select" data-table-filter="status" aria-label="Filter by status">
+            <option value="all">All statuses</option><option>Draft</option><option>Sent</option><option>Partially received</option><option>Received</option><option>Cancelled</option>
+          </select>
+          <select class="select" data-table-filter="supplier" aria-label="Filter by supplier" id="sup-filter"><option value="all">All suppliers</option></select>
+        </div>
+        <div class="table-wrap"><table class="table table-cards"></table></div>
+        <div class="table-footer"><span data-table-info></span><nav class="pagination" aria-label="Pagination" data-table-pager></nav></div>
+      </section>
+
+      <dialog class="modal modal-lg" id="po-view" aria-labelledby="po-view-title">
+        <div class="modal-header">
+          <div><h2 class="modal-title" id="po-view-title"></h2><p class="modal-desc" id="po-view-desc"></p></div>
+          <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="modal-body stack-sm">
+          <div class="mini-stats cols-4" id="po-view-stats"></div>
+          <div class="table-wrap" style="border:1px solid var(--border);border-radius:14px">
+            <table class="table table-sm"><thead><tr><th scope="col">Item</th><th scope="col" class="num">Qty</th><th scope="col" class="num">Unit cost</th><th scope="col" class="num">Total</th></tr></thead><tbody id="po-view-lines"></tbody></table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-action="print"><i class="ph ph-printer"></i>Print</button>
+          <button class="btn btn-primary" type="button" id="receive-btn"><i class="ph ph-package"></i>Receive all items</button>
+        </div>
+      </dialog>
+
+      <dialog class="modal modal-lg" id="po-modal" aria-labelledby="po-title">
+        <form class="modal-form" data-validate novalidate id="po-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="po-title">Create purchase order</h2><p class="modal-desc">Costs default to the supplier’s last price.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body stack-sm">
+            <div class="form-grid cols-3">
+              <div class="field"><label class="label" for="po-supplier">Supplier <span class="req">*</span></label><select class="select" id="po-supplier" name="supplier" required></select></div>
+              <div class="field"><label class="label" for="po-wh">Deliver to</label><select class="select" id="po-wh" name="warehouse"></select></div>
+              <div class="field"><label class="label" for="po-date">Expected by</label><input class="input" id="po-date" name="expected" type="date" required></div>
+            </div>
+            <div class="label-row"><span class="label">Items</span><button class="btn btn-soft btn-sm" type="button" id="add-line"><i class="ph ph-plus"></i>Add item</button></div>
+            <div class="table-wrap" style="border:1px solid var(--border);border-radius:14px">
+              <table class="table table-sm"><thead><tr><th scope="col">Product</th><th scope="col" style="width:100px">Qty</th><th scope="col" style="width:130px">Unit cost</th><th scope="col" class="num">Total</th><th scope="col"><span class="sr-only">Remove</span></th></tr></thead><tbody id="lines"></tbody></table>
+            </div>
+            <div class="invoice-totals" id="po-total" style="padding-top:4px"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="submit" name="as" value="Draft">Save as draft</button>
+            <button class="btn btn-primary" type="submit" name="as" value="Sent"><i class="ph ph-paper-plane-tilt"></i>Send to supplier</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { fmt, esc, avatar, badge, rowMenu, table, toast, confirm, openModal, $ } = App;
+  const itemsOf = po => po.lines.reduce((s, l) => s + l.qty, 0);
+
+  function renderKpis() {
+    const d = list.data, open = d.filter(p => ['Draft', 'Sent', 'Partially received'].includes(p.status));
+    $('#kpis').innerHTML = [
+      ['Open orders', open.length, 'clipboard-text', 'primary'],
+      ['Awaiting delivery', d.filter(p => p.status === 'Sent' || p.status === 'Partially received').length, 'truck', 'info'],
+      ['Received (60d)', d.filter(p => p.status === 'Received').length, 'package', 'success'],
+      ['Committed spend', fmt.money(open.reduce((s, p) => s + p.amount, 0)), 'currency-dollar', 'violet'],
+    ].map(([k, v, i, t]) => `<article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-${t}"><i class="ph ph-${i}"></i></span><div class="grow"><h2 class="stat-label">${k}</h2><p class="stat-value">${v}</p></div></article>`).join('');
+  }
+
+  $('#sup-filter').insertAdjacentHTML('beforeend', DB.suppliers.map(s => `<option>${esc(s.name)}</option>`).join(''));
+  const list = table('#pos', {
+    data: [...DB.purchaseOrders], caption: 'Purchase orders', sort: ['date', 'desc'], search: ['id', 'supplier'], rowClick: false,
+    columns: [
+      { key: 'id', label: 'PO', sortable: true, cls: 'cell-main', render: p => `<button class="link-btn fw-700 nowrap" type="button" data-view="${p.id}">${p.id}</button><span class="cell-sub">${p.lines.length} products · ${fmt.num(itemsOf(p))} units</span>` },
+      { key: 'supplier', label: 'Supplier', sortable: true, render: p => `<div class="cell-user">${avatar(p.supplier, 'avatar-sm')}<div><strong>${esc(p.supplier)}</strong><small>Buyer: ${esc(p.buyer)}</small></div></div>` },
+      { key: 'date', label: 'Ordered', sortable: true, render: p => `<span class="nowrap">${fmt.date(p.date)}</span>` },
+      { key: 'expected', label: 'Expected', sortable: true, cls: 'col-xl', render: p => `<span class="nowrap">${fmt.date(p.expected)}</span>` },
+      { key: 'amount', label: 'Amount', sortable: true, cls: 'num', render: p => `<span class="fw-700">${fmt.money(p.amount)}</span>` },
+      { key: 'status', label: 'Status', sortable: true, render: p => badge(p.status) },
+      { label: '', cls: 'cell-actions', render: p => rowMenu([
+        { label: 'View details', icon: 'eye', action: 'view' },
+        { label: 'Mark as received', icon: 'package', action: 'receive' },
+        { label: 'Email supplier', icon: 'envelope-simple', action: 'email' },
+        '-', { label: 'Cancel PO', icon: 'x-circle', action: 'cancel', danger: true },
+      ], `Actions for ${p.id}`) },
+    ],
+  });
+  renderKpis();
+
+  let viewing = null;
+  function view(po) {
+    viewing = po;
+    $('#po-view-title').textContent = po.id;
+    $('#po-view-desc').textContent = `${po.supplier} · ordered ${fmt.date(po.date)}`;
+    $('#po-view-stats').innerHTML = [['Status', badge(po.status)], ['Expected', fmt.date(po.expected)], ['Units', fmt.num(itemsOf(po))], ['Total', fmt.money(po.amount)]].map(([k, v]) => `<div class="mini-stat"><small>${k}</small><strong>${v}</strong></div>`).join('');
+    $('#po-view-lines').innerHTML = po.lines.map(l => `<tr><td><span class="cell-title">${esc(l.name)}</span><span class="cell-sub">${l.sku}</span></td><td class="num">${l.qty}</td><td class="num">${fmt.money(l.cost)}</td><td class="num fw-600">${fmt.money(l.qty * l.cost)}</td></tr>`).join('');
+    $('#receive-btn').disabled = po.status === 'Received' || po.status === 'Cancelled';
+    openModal('#po-view');
+  }
+  const receive = po => { po.status = 'Received'; list.render(); renderKpis(); toast(`${fmt.num(itemsOf(po))} units received into stock`, { title: po.id }); };
+  $('#receive-btn').addEventListener('click', () => { receive(viewing); $('#po-view').close(); });
+  $('#pos').addEventListener('click', async e => {
+    const v = e.target.closest('[data-view]');
+    if (v) return view(list.find(v.dataset.view));
+    const b = e.target.closest('[data-row-action]');
+    if (!b) return;
+    const po = list.find(b.closest('tr').dataset.id), act = b.dataset.rowAction;
+    if (act === 'view') view(po);
+    if (act === 'receive') receive(po);
+    if (act === 'email') toast(`Email drafted to ${po.supplier}`, { type: 'info' });
+    if (act === 'cancel' && await confirm({ title: `Cancel ${po.id}?`, text: `${po.supplier} will be notified that this order is cancelled.`, confirm: 'Cancel PO' })) { po.status = 'Cancelled'; list.render(); renderKpis(); toast(`${po.id} cancelled`, { type: 'warning' }); }
+  });
+
+  // Create PO
+  $('#po-supplier').innerHTML = DB.suppliers.map(s => `<option value="${s.id}">${esc(s.name)} · ${s.leadTime}d lead time</option>`).join('');
+  $('#po-wh').innerHTML = DB.warehouses.map(w => `<option>${esc(w.name)}</option>`).join('');
+  const productOpts = DB.products.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  let lines = [];
+  function renderLines() {
+    $('#lines').innerHTML = lines.map((l, i) => `<tr>
+      <td><select class="select select-sm" data-i="${i}" data-k="id" aria-label="Product for item ${i + 1}">${productOpts.replace(`value="${l.id}"`, `value="${l.id}" selected`)}</select></td>
+      <td><input class="input input-sm" type="number" min="1" value="${l.qty}" data-i="${i}" data-k="qty" aria-label="Quantity for item ${i + 1}" inputmode="numeric" required></td>
+      <td><input class="input input-sm" type="number" min="0" step="0.01" value="${l.cost}" data-i="${i}" data-k="cost" aria-label="Unit cost for item ${i + 1}" inputmode="decimal" required></td>
+      <td class="num fw-600">${fmt.money(l.qty * l.cost)}</td>
+      <td class="num"><button class="btn btn-ghost btn-icon btn-sm" type="button" data-rm="${i}" aria-label="Remove item ${i + 1}" ${lines.length < 2 ? 'disabled' : ''}><i class="ph ph-trash"></i></button></td></tr>`).join('');
+    $('#po-total').innerHTML = `<div class="grand"><span>Total</span><span>${fmt.money(lines.reduce((s, l) => s + l.qty * l.cost, 0))}</span></div>`;
+  }
+  const newLine = (i = 0) => { const p = DB.products[i]; return { id: p.id, qty: 20, cost: p.cost }; };
+  $('#lines').addEventListener('change', e => {
+    const { i, k } = e.target.dataset; if (i === undefined) return;
+    if (k === 'id') { const p = DB.find('products', e.target.value); lines[i] = { ...lines[i], id: p.id, cost: p.cost }; }
+    else lines[i][k] = Math.max(k === 'qty' ? 1 : 0, +e.target.value || 0);
+    renderLines();
+  });
+  $('#lines').addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (b) { lines.splice(+b.dataset.rm, 1); renderLines(); } });
+  $('#add-line').addEventListener('click', () => { lines.push(newLine(lines.length * 3 % DB.products.length)); renderLines(); });
+  $('#new-po').addEventListener('click', () => {
+    lines = [newLine(0)]; renderLines();
+    $('#po-date').value = DB.ymd(new Date(Date.now() + 14 * 864e5));
+    openModal('#po-modal');
+  });
+  let submitAs = 'Sent';
+  $('#po-form').addEventListener('click', e => { const b = e.target.closest('button[name="as"]'); if (b) submitAs = b.value; });
+  $('#po-form').addEventListener('valid', e => {
+    const s = DB.find('suppliers', e.detail.supplier);
+    const id = `PO-${list.data.reduce((m, p) => Math.max(m, +p.id.slice(3)), 0) + 1}`;
+    list.add({ id, supplierId: s.id, supplier: s.name, date: new Date().toISOString(), expected: new Date(e.detail.expected + 'T12:00').toISOString(), buyer: App.me.name, status: submitAs,
+      lines: lines.map(l => { const p = DB.find('products', l.id); return { name: p.name, sku: p.sku, qty: l.qty, cost: l.cost }; }), amount: lines.reduce((t, l) => t + l.qty * l.cost, 0) });
+    renderKpis();
+    toast(submitAs === 'Sent' ? `${id} sent to ${s.name}` : `${id} saved as draft`, { title: 'Purchase order created' });
+  });
+</script>
+</body>
+</html>

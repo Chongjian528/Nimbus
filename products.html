@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Products · Nimbus Admin</title>
+  <meta name="description" content="Products — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Inventory</span><span aria-current="page">Products</span></nav>
+          <h1 class="page-title">Product catalog</h1>
+          <p class="page-subtitle"><span id="count">0</span> products across <span id="cat-count">0</span> categories.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" type="button" data-action="print"><i class="ph ph-download-simple"></i>Export</button>
+          <a class="btn btn-primary" href="product-form.html"><i class="ph ph-plus"></i>Add product</a>
+        </div>
+      </div>
+
+      <section class="card">
+        <div class="table-toolbar">
+          <div class="input-icon"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" id="q" placeholder="Search name or SKU…" aria-label="Search products"></div>
+          <select class="select" id="category" aria-label="Filter by category"><option value="all">All categories</option></select>
+          <select class="select" id="stock" aria-label="Filter by stock"><option value="all">Any stock</option><option>In stock</option><option>Low stock</option><option>Out of stock</option></select>
+          <select class="select" id="sort" aria-label="Sort products">
+            <option value="popular">Most popular</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="rating">Top rated</option><option value="name">Name A–Z</option>
+          </select>
+          <div class="segmented ml-auto" data-segmented id="view" aria-label="View">
+            <button type="button" aria-pressed="true" data-value="grid"><i class="ph ph-squares-four"></i>Grid</button>
+            <button type="button" aria-pressed="false" data-value="list"><i class="ph ph-list-bullets"></i>List</button>
+          </div>
+        </div>
+        <div class="flex wrap gap-2" style="padding:0 var(--pad) var(--pad)" id="chips" aria-label="Quick filters"></div>
+      </section>
+
+      <section class="auto-grid" id="grid" style="--min:230px" aria-label="Products"></section>
+
+      <section class="card" id="list-view" hidden aria-label="Product list">
+        <div class="table-wrap"><table class="table table-cards"></table></div>
+        <div class="table-footer"><span data-table-info></span><nav class="pagination" aria-label="Pagination" data-table-pager></nav></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { fmt, esc, badge, table, param, toast, $ } = App;
+  const products = DB.products;
+  const cats = [...new Set(products.map(p => p.category))].sort();
+  $('#count').textContent = products.length;
+  $('#cat-count').textContent = cats.length;
+  $('#category').insertAdjacentHTML('beforeend', cats.map(c => `<option>${c}</option>`).join(''));
+  $('#chips').innerHTML = ['Audio', 'Laptops', 'Furniture', 'Apparel', 'Accessories'].map(c => `<button class="chip" type="button" data-cat="${c}" aria-pressed="false">${c}</button>`).join('');
+  $('#q').value = param('q') || '';
+
+  const stars = r => `<span class="rating" aria-label="Rated ${r} out of 5">${[1, 2, 3, 4, 5].map(i => `<i class="ph${r >= i - 0.25 ? '-fill' : ''} ph-star"></i>`).join('')}<span>${r.toFixed(1)}</span></span>`;
+  const stockBadge = p => badge(p.stockStatus === 'In stock' ? `${p.stock} in stock` : p.stockStatus, App.statusTone(p.stockStatus));
+
+  const list = table('#list-view', {
+    data: products, caption: 'Products', pageSize: 10,
+    columns: [
+      { key: 'name', label: 'Product', sortable: true, cls: 'cell-main', render: p => `<div class="cell-user"><span class="thumb-icon tone-${p.tone}"><i class="ph ph-${p.icon}"></i></span><div><strong>${esc(p.name)}</strong><small>${p.sku}</small></div></div>` },
+      { key: 'category', label: 'Category', sortable: true },
+      { key: 'price', label: 'Price', sortable: true, cls: 'num', render: p => `<span class="fw-700">${fmt.money(p.price)}</span>` },
+      { key: 'stock', label: 'Stock', sortable: true, render: p => stockBadge(p) },
+      { key: 'sold', label: 'Sold (30d)', sortable: true, cls: 'num', render: p => fmt.num(p.sold) },
+      { key: 'rating', label: 'Rating', sortable: true, cls: 'col-xl', render: p => stars(p.rating) },
+      { key: 'status', label: 'Status', sortable: true, render: p => badge(p.status) },
+      { label: '', cls: 'cell-actions', render: () => `<a class="btn btn-ghost btn-icon btn-sm" href="product-form.html" aria-label="Edit product"><i class="ph ph-pencil-simple"></i></a>` },
+    ],
+    rowClick: false,
+  });
+
+  function filtered() {
+    const q = $('#q').value.trim().toLowerCase(), cat = $('#category').value, stock = $('#stock').value, sort = $('#sort').value;
+    const out = products.filter(p => (!q || (p.name + p.sku).toLowerCase().includes(q)) && (cat === 'all' || p.category === cat) && (stock === 'all' || p.stockStatus === stock));
+    const by = { popular: (a, b) => b.sold - a.sold, 'price-asc': (a, b) => a.price - b.price, 'price-desc': (a, b) => b.price - a.price, rating: (a, b) => b.rating - a.rating, name: (a, b) => a.name.localeCompare(b.name) };
+    return out.sort(by[sort]);
+  }
+  function render() {
+    const items = filtered();
+    $('#grid').innerHTML = items.length ? items.map(p => `
+      <article class="card product-card">
+        <div class="product-media tone-${p.tone}"><i class="ph ph-${p.icon}"></i>${stockBadge(p)}</div>
+        <div class="product-body">
+          <p class="text-xs text-3 fw-600">${p.category} · ${p.sku}</p>
+          <h3><a href="product-form.html">${esc(p.name)}</a></h3>
+          ${stars(p.rating)}
+          <div class="product-foot"><span class="price">${fmt.money(p.price)}</span><span class="text-xs text-3">${fmt.num(p.sold)} sold</span></div>
+          <div class="flex gap-2 mt-2">
+            <a class="btn btn-secondary btn-sm grow" href="product-form.html"><i class="ph ph-pencil-simple"></i>Edit</a>
+            <button class="btn btn-soft btn-sm grow" type="button" data-restock="${p.id}"><i class="ph ph-arrows-clockwise"></i>Restock</button>
+          </div>
+        </div>
+      </article>`).join('')
+      : `<div class="card empty" style="grid-column:1/-1"><span class="icon-tile tone-neutral"><i class="ph ph-package"></i></span><h3>No products match</h3><p>Try another search term or clear the filters.</p><button class="btn btn-secondary mt-2" type="button" id="clear">Clear filters</button></div>`;
+    list.data = items;
+    $('#chips').querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.cat === $('#category').value)));
+  }
+  ['q', 'category', 'stock', 'sort'].forEach(id => $('#' + id).addEventListener(id === 'q' ? 'input' : 'change', render));
+  $('#chips').addEventListener('click', e => { const c = e.target.closest('[data-cat]'); if (!c) return; $('#category').value = $('#category').value === c.dataset.cat ? 'all' : c.dataset.cat; render(); });
+  $('#view').addEventListener('segment', e => { $('#grid').hidden = e.detail !== 'grid'; $('#list-view').hidden = e.detail !== 'list'; });
+  $('#grid').addEventListener('click', e => {
+    if (e.target.closest('#clear')) { $('#q').value = ''; $('#category').value = $('#stock').value = 'all'; render(); }
+    const r = e.target.closest('[data-restock]');
+    if (r) toast(`Draft purchase order created for ${DB.find('products', r.dataset.restock).name}`, { title: 'Restock requested' });
+  });
+  render();
+</script>
+</body>
+</html>

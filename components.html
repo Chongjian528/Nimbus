@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Components · Nimbus Admin</title>
+  <meta name="description" content="Components — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>UI Kit</span><span aria-current="page">Components</span></nav>
+          <h1 class="page-title">Components</h1>
+          <p class="page-subtitle">Every building block used across Nimbus — copy the markup straight from this page.</p>
+        </div>
+        <div class="page-actions"><a class="btn btn-secondary" href="forms.html"><i class="ph ph-textbox"></i>Form elements</a></div>
+      </div>
+
+      <div class="row">
+        <section class="card xl-6" aria-labelledby="c-buttons">
+          <div class="card-header"><div><h2 class="card-title" id="c-buttons">Buttons</h2><p class="card-subtitle">Variants, sizes and states</p></div></div>
+          <div class="card-body stack-sm">
+            <div class="flex wrap gap-2">
+              <button class="btn btn-primary" type="button">Primary</button><button class="btn btn-secondary" type="button">Secondary</button>
+              <button class="btn btn-soft" type="button">Soft</button><button class="btn btn-ghost" type="button">Ghost</button>
+              <button class="btn btn-success" type="button">Success</button><button class="btn btn-danger" type="button">Danger</button><button class="btn btn-soft-danger" type="button">Soft danger</button>
+            </div>
+            <div class="flex wrap items-center gap-2">
+              <button class="btn btn-primary btn-sm" type="button">Small</button><button class="btn btn-primary" type="button">Default</button><button class="btn btn-primary btn-lg" type="button">Large</button>
+              <button class="btn btn-secondary" type="button" disabled>Disabled</button>
+              <button class="btn btn-primary" type="button" id="loading-demo"><i class="ph ph-cloud-arrow-up"></i>Click to load</button>
+            </div>
+            <div class="flex wrap items-center gap-2">
+              <button class="btn btn-primary btn-icon" type="button" aria-label="Add"><i class="ph ph-plus"></i></button>
+              <button class="btn btn-secondary btn-icon" type="button" aria-label="Edit"><i class="ph ph-pencil-simple"></i></button>
+              <button class="btn btn-soft btn-icon" type="button" aria-label="Share"><i class="ph ph-share-network"></i></button>
+              <button class="btn btn-ghost btn-icon" type="button" aria-label="More"><i class="ph ph-dots-three"></i></button>
+              <div class="btn-group" role="group" aria-label="Text alignment">
+                <button class="btn btn-secondary btn-icon" type="button" aria-label="Align left"><i class="ph ph-text-align-left"></i></button>
+                <button class="btn btn-secondary btn-icon" type="button" aria-label="Align center"><i class="ph ph-text-align-center"></i></button>
+                <button class="btn btn-secondary btn-icon" type="button" aria-label="Align right"><i class="ph ph-text-align-right"></i></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="c-badges">
+          <div class="card-header"><div><h2 class="card-title" id="c-badges">Badges, chips &amp; tags</h2><p class="card-subtitle">Status is always text + color</p></div></div>
+          <div class="card-body stack-sm">
+            <div class="flex wrap gap-2"><span class="badge tone-primary">Primary</span><span class="badge tone-success">Success</span><span class="badge tone-warning">Warning</span><span class="badge tone-danger">Danger</span><span class="badge tone-info">Info</span><span class="badge tone-violet">Violet</span><span class="badge tone-pink">Pink</span><span class="badge">Neutral</span></div>
+            <div class="flex wrap gap-2"><span class="badge badge-dot tone-success">Paid</span><span class="badge badge-dot tone-warning">Pending</span><span class="badge badge-dot tone-danger">Overdue</span><span class="badge badge-dot tone-info">Shipped</span><span class="badge badge-lg tone-primary"><i class="ph ph-sparkle"></i>Large</span></div>
+            <div class="flex wrap gap-2"><button class="chip" type="button" data-toggle aria-pressed="true">Toggle chip</button><button class="chip" type="button" data-toggle aria-pressed="false"><i class="ph ph-funnel"></i>Filter</button><span class="chip">Removable<button class="chip-remove" type="button" aria-label="Remove" onclick="this.parentElement.remove()"><i class="ph ph-x"></i></button></span></div>
+            <div class="flex wrap items-center gap-2"><span class="tag tone-primary">Design</span><span class="tag tone-violet">Backend</span><span class="tag tone-danger">Bug</span><span class="delta is-good"><i class="ph ph-trend-up"></i>12.4%</span><span class="delta is-bad"><i class="ph ph-trend-down"></i>3.1%</span><span class="delta is-flat"><i class="ph ph-minus"></i>0.0%</span></div>
+          </div>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="c-avatars">
+          <div class="card-header"><div><h2 class="card-title" id="c-avatars">Avatars</h2><p class="card-subtitle">Initials with soft, deterministic tones</p></div></div>
+          <div class="card-body stack-sm">
+            <div class="flex wrap items-center gap-3" id="avatar-sizes"></div>
+            <div class="flex wrap items-center gap-6" id="avatar-groups"></div>
+          </div>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="c-alerts">
+          <div class="card-header"><div><h2 class="card-title" id="c-alerts">Alerts</h2><p class="card-subtitle">Inline feedback with an icon and a title</p></div></div>
+          <div class="card-body stack-sm">
+            <div class="alert tone-info" role="status"><i class="ph ph-info"></i><div><strong>Heads up</strong>A new version of Nimbus is available.</div><button class="btn btn-ghost btn-icon btn-sm alert-close" type="button" aria-label="Dismiss" onclick="this.closest('.alert').remove()"><i class="ph ph-x"></i></button></div>
+            <div class="alert tone-success" role="status"><i class="ph ph-check-circle"></i><div><strong>Payment received</strong>INV-2026-0141 was paid in full.</div></div>
+            <div class="alert tone-warning" role="status"><i class="ph ph-warning"></i><div><strong>Low stock</strong>5 products are below their reorder point.</div></div>
+            <div class="alert tone-danger" role="alert"><i class="ph ph-x-circle"></i><div><strong>Sync failed</strong>We couldn’t reach your accounting integration.</div></div>
+          </div>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="c-progress">
+          <div class="card-header"><div><h2 class="card-title" id="c-progress">Progress &amp; loading</h2><p class="card-subtitle">Native progress, spinner and skeletons</p></div></div>
+          <div class="card-body stack-sm">
+            <div class="progress-row"><div class="label-row"><span>Primary</span><span>72%</span></div><progress class="progress" value="72" max="100" aria-label="Primary progress"></progress></div>
+            <div class="progress-row"><div class="label-row"><span>Success</span><span>90%</span></div><progress class="progress bar-success" value="90" max="100" aria-label="Success progress"></progress></div>
+            <div class="progress-row"><div class="label-row"><span>Warning</span><span>54%</span></div><progress class="progress bar-warning lg" value="54" max="100" aria-label="Warning progress"></progress></div>
+            <div class="flex items-center gap-4 mt-2">
+              <div class="spinner" role="status" aria-label="Loading"></div>
+              <div class="flex items-center gap-3 grow" aria-hidden="true"><div class="skeleton" style="width:44px;height:44px;border-radius:50%"></div><div class="grow stack-sm" style="gap:8px"><div class="skeleton" style="height:12px;width:70%"></div><div class="skeleton" style="height:12px;width:45%"></div></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="c-overlays">
+          <div class="card-header"><div><h2 class="card-title" id="c-overlays">Overlays</h2><p class="card-subtitle">Modals, confirmations, toasts, menus and tooltips</p></div></div>
+          <div class="card-body stack-sm">
+            <div class="flex wrap gap-2">
+              <button class="btn btn-primary" type="button" data-modal="#demo-modal">Open modal</button>
+              <button class="btn btn-soft-danger" type="button" id="confirm-demo">Confirm dialog</button>
+              <div class="dropdown">
+                <button class="btn btn-secondary" type="button" data-dropdown aria-haspopup="true" aria-expanded="false">Dropdown<i class="ph ph-caret-down"></i></button>
+                <div class="dropdown-menu" data-align="start">
+                  <div class="dropdown-header"><strong>Signed in as</strong><small>olivia.carter@nimbus.io</small></div>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="profile.html"><i class="ph ph-user"></i>Profile</a>
+                  <button class="dropdown-item" type="button"><i class="ph ph-copy"></i>Duplicate</button>
+                  <div class="dropdown-divider"></div>
+                  <button class="dropdown-item danger" type="button"><i class="ph ph-trash"></i>Delete</button>
+                </div>
+              </div>
+            </div>
+            <div class="flex wrap gap-2">
+              <button class="btn btn-secondary btn-sm" type="button" data-toast="success">Success toast</button>
+              <button class="btn btn-secondary btn-sm" type="button" data-toast="info">Info toast</button>
+              <button class="btn btn-secondary btn-sm" type="button" data-toast="warning">Warning toast</button>
+              <button class="btn btn-secondary btn-sm" type="button" data-toast="error">Error toast</button>
+            </div>
+            <div class="flex wrap gap-2"><button class="btn btn-ghost" type="button" data-tooltip="Tooltips work on hover and keyboard focus">Hover or focus me</button><button class="btn btn-ghost btn-icon" type="button" data-tooltip="Settings" aria-label="Settings"><i class="ph ph-gear-six"></i></button></div>
+          </div>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="c-tabs">
+          <div class="card-header"><div><h2 class="card-title" id="c-tabs">Tabs &amp; segmented control</h2><p class="card-subtitle">Arrow keys move between tabs</p></div></div>
+          <div class="tabs mt-2" role="tablist" aria-label="Demo tabs" style="padding:0 var(--pad)">
+            <button class="tab" role="tab" id="dt-1" aria-controls="dp-1" aria-selected="true">Overview</button>
+            <button class="tab" role="tab" id="dt-2" aria-controls="dp-2" aria-selected="false" tabindex="-1">Activity <span class="count">3</span></button>
+            <button class="tab" role="tab" id="dt-3" aria-controls="dp-3" aria-selected="false" tabindex="-1">Settings</button>
+          </div>
+          <div class="card-body">
+            <div class="tab-panel" role="tabpanel" id="dp-1" aria-labelledby="dt-1" tabindex="0"><p class="text-sm text-2">Panels switch without reloading. Tabs are real <code>role="tab"</code> buttons.</p></div>
+            <div class="tab-panel" role="tabpanel" id="dp-2" aria-labelledby="dt-2" tabindex="0" hidden><p class="text-sm text-2">Three new events since your last visit.</p></div>
+            <div class="tab-panel" role="tabpanel" id="dp-3" aria-labelledby="dt-3" tabindex="0" hidden><p class="text-sm text-2">Tab settings live here.</p></div>
+            <div class="segmented mt-4" data-segmented aria-label="Demo segmented"><button type="button" aria-pressed="true">Day</button><button type="button" aria-pressed="false">Week</button><button type="button" aria-pressed="false">Month</button></div>
+          </div>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="c-nav">
+          <div class="card-header"><div><h2 class="card-title" id="c-nav">Navigation</h2><p class="card-subtitle">Breadcrumbs, pagination and stepper</p></div></div>
+          <div class="card-body stack-sm">
+            <nav class="breadcrumb" aria-label="Breadcrumb demo"><a href="index.html">Home</a><a href="orders.html">Orders</a><span aria-current="page">#ORD-24890</span></nav>
+            <nav class="pagination" aria-label="Pagination demo" id="pager-demo"></nav>
+            <ol class="stepper horizontal mt-4">
+              <li class="step is-done"><span class="step-icon"><i class="ph ph-check"></i></span><div><p class="step-title">Cart</p><p class="step-meta">Done</p></div></li>
+              <li class="step is-current" aria-current="step"><span class="step-icon"><i class="ph ph-truck"></i></span><div><p class="step-title">Shipping</p><p class="step-meta">In progress</p></div></li>
+              <li class="step"><span class="step-icon"><i class="ph ph-credit-card"></i></span><div><p class="step-title">Payment</p><p class="step-meta">Next</p></div></li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="c-lists">
+          <div class="card-header"><div><h2 class="card-title" id="c-lists">Lists &amp; timeline</h2><p class="card-subtitle">Compact data rows</p></div></div>
+          <div class="card-body">
+            <ul class="timeline">
+              <li class="timeline-item"><span class="timeline-icon tone-success"><i class="ph ph-check-circle"></i></span><div><p class="timeline-title">Order delivered</p><p class="timeline-text">Signed by Liam</p><p class="timeline-meta">2 hours ago</p></div></li>
+              <li class="timeline-item"><span class="timeline-icon tone-info"><i class="ph ph-truck"></i></span><div><p class="timeline-title">Out for delivery</p><p class="timeline-text">DHL Express</p><p class="timeline-meta">This morning</p></div></li>
+              <li class="timeline-item"><span class="timeline-icon tone-primary"><i class="ph ph-receipt"></i></span><div><p class="timeline-title">Order placed</p><p class="timeline-text">3 items · $2,146.80</p><p class="timeline-meta">Yesterday</p></div></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="c-empty">
+          <div class="card-header"><div><h2 class="card-title" id="c-empty">Empty state &amp; accordion</h2><p class="card-subtitle">Guide users when there’s nothing to show</p></div></div>
+          <div class="card-body stack-sm">
+            <div class="empty" style="padding:16px"><span class="icon-tile tone-primary"><i class="ph ph-tray"></i></span><h3>No invoices yet</h3><p>Create your first invoice to start getting paid.</p><button class="btn btn-primary btn-sm mt-2" type="button"><i class="ph ph-plus"></i>Create invoice</button></div>
+            <div class="accordion">
+              <details><summary>What is an accordion?<i class="ph ph-caret-down"></i></summary><div class="acc-body">A native &lt;details&gt; element — keyboard accessible with zero JavaScript.</div></details>
+              <details><summary>Can several be open?<i class="ph ph-caret-down"></i></summary><div class="acc-body">Yes, each item toggles independently.</div></details>
+            </div>
+          </div>
+        </section>
+
+        <section class="card lg-12" aria-labelledby="c-tokens">
+          <div class="card-header"><div><h2 class="card-title" id="c-tokens">Color tokens &amp; typography</h2><p class="card-subtitle">Defined once in <code>app.css</code> — dark mode swaps the values</p></div></div>
+          <div class="card-body stack">
+            <div class="auto-grid" style="--min:130px" id="swatches"></div>
+            <div class="auto-grid" style="--min:130px" id="chart-swatches"></div>
+            <div class="stack-sm">
+              <p style="font-size:2rem;font-weight:800;letter-spacing:-.02em;line-height:1.2">Display 32 · Plus Jakarta Sans</p>
+              <p style="font-size:1.375rem;font-weight:700">Heading 22 · Page titles</p>
+              <p class="fw-700">Title 16 · Card titles</p>
+              <p>Body 15 · Comfortable reading text for tables, forms and descriptions.</p>
+              <p class="text-sm text-2">Secondary 14 · Supporting text and captions</p>
+              <p class="text-xs text-3">Muted 13 · Metadata and timestamps</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <dialog class="modal" id="demo-modal" aria-labelledby="demo-title">
+        <div class="modal-header"><div><h2 class="modal-title" id="demo-title">A soft modal</h2><p class="modal-desc">Native &lt;dialog&gt; — focus trap, Esc and backdrop click built in.</p></div>
+          <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button></div>
+        <div class="modal-body"><p class="text-sm text-2">On phones, modals slide up as a bottom sheet with safe-area padding. Try resizing the window.</p></div>
+        <div class="modal-footer"><button class="btn btn-secondary" type="button" data-modal-close>Close</button><button class="btn btn-primary" type="button" data-modal-close onclick="App.toast('Changes saved')">Save</button></div>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { avatar, avatars, toast, confirm, $ } = App;
+  $('#avatar-sizes').innerHTML = ['Olivia Carter', 'Liam Nguyen', 'Sophia Patel', 'Noah Kim', 'Emma Rodriguez'].map((n, i) => avatar(n, ['avatar-xs', 'avatar-sm', '', 'avatar-lg', 'avatar-xl'][i], true)).join('');
+  $('#avatar-groups').innerHTML = avatars(['Ava Thompson', 'Lucas Martin', 'Mia Chen', 'Ethan Brooks', 'Isabella Rossi', 'Mason Wright'], 4)
+    + `<span style="position:relative;display:inline-flex">${avatar('Aria Singh', 'avatar-lg', true)}<span class="presence online" style="width:14px;height:14px"></span></span>`;
+
+  $('#loading-demo').addEventListener('click', e => { const b = e.currentTarget; b.classList.add('is-loading'); setTimeout(() => { b.classList.remove('is-loading'); toast('Upload complete'); }, 1400); });
+  $('#confirm-demo').addEventListener('click', async () => { const ok = await confirm({ title: 'Delete this item?', text: 'This action cannot be undone.', confirm: 'Delete' }); toast(ok ? 'Item deleted' : 'Cancelled', { type: ok ? 'success' : 'info' }); });
+  document.addEventListener('click', e => { const t = e.target.closest('[data-toast]'); if (t) toast({ success: 'Everything went smoothly.', info: 'Here’s something you should know.', warning: 'Please double-check this.', error: 'Something went wrong. Try again.' }[t.dataset.toast], { type: t.dataset.toast, title: t.textContent.replace(' toast', '') }); });
+
+  let page = 3;
+  const renderPager = () => { $('#pager-demo').innerHTML = [['‹', page - 1, 'Previous page'], ...[1, 2, 3, 4, 5].map(n => [n, n, `Page ${n}`]), ['›', page + 1, 'Next page']].map(([l, p, lab]) =>
+    `<button class="page-btn" type="button" data-p="${p}" ${p === page && typeof l === 'number' ? 'aria-current="page"' : `aria-label="${lab}"`} ${p < 1 || p > 5 ? 'disabled' : ''}>${l}</button>`).join(''); };
+  renderPager();
+  $('#pager-demo').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (b && !b.disabled) { page = +b.dataset.p; renderPager(); } });
+
+  const TOKENS = ['--primary', '--success', '--warning', '--danger', '--info', '--violet', '--pink', '--bg', '--surface', '--surface-3', '--border', '--text', '--text-2', '--text-3'];
+  const sw = list => list.map(t => `<div class="flex items-center gap-2"><span style="width:36px;height:36px;border-radius:10px;background:var(${t});border:1px solid var(--border);flex-shrink:0"></span><div style="min-width:0"><code class="text-xs fw-600">${t}</code><p class="text-xs text-3" data-token="${t}"></p></div></div>`).join('');
+  $('#swatches').innerHTML = sw(TOKENS);
+  $('#chart-swatches').innerHTML = sw([1, 2, 3, 4, 5, 6, 7, 8].map(i => `--chart-${i}`));
+  const fillValues = () => document.querySelectorAll('[data-token]').forEach(p => { p.textContent = App.cssVar(p.dataset.token); });
+  fillValues(); document.addEventListener('themechange', fillValues);
+</script>
+</body>
+</html>

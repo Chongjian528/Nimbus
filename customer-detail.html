@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customer Profile · Nimbus Admin</title>
+  <meta name="description" content="Customer Profile — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><a href="customers.html">Customers</a><span aria-current="page" id="crumb-name">Profile</span></nav>
+          <h1 class="page-title" id="c-title">Customer</h1>
+          <p class="page-subtitle" id="c-subtitle"></p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-secondary" id="c-mail" href="#"><i class="ph ph-envelope-simple"></i>Email</a>
+          <button class="btn btn-secondary" type="button" onclick="App.toast('Call logged to the timeline', { type: 'info' })"><i class="ph ph-phone"></i>Log call</button>
+          <a class="btn btn-primary" href="orders.html"><i class="ph ph-plus"></i>New order</a>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="xl-4 stack">
+          <section class="card">
+            <div class="card-body">
+              <div class="flex items-center gap-4">
+                <div id="c-avatar"></div>
+                <div class="grow">
+                  <h2 class="text-lg fw-700" id="c-name"></h2>
+                  <p class="text-sm text-2" id="c-company"></p>
+                  <div class="flex wrap gap-2 mt-2" id="c-badges"></div>
+                </div>
+              </div>
+              <div class="mini-stats mt-6" id="c-stats"></div>
+            </div>
+            <div class="card-footer">
+              <ul class="info-list" id="c-info"></ul>
+            </div>
+          </section>
+          <section class="card">
+            <div class="card-header"><h2 class="card-title">Tags</h2><button class="btn btn-ghost btn-sm" type="button" id="add-tag"><i class="ph ph-plus"></i>Add</button></div>
+            <div class="card-body flex wrap gap-2" id="c-tags"></div>
+          </section>
+          <section class="card">
+            <div class="card-header"><h2 class="card-title">Account owner</h2></div>
+            <div class="card-body" id="c-owner"></div>
+          </section>
+        </div>
+
+        <section class="card xl-8">
+          <div class="tabs" role="tablist" aria-label="Customer sections">
+            <button class="tab" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true">Overview</button>
+            <button class="tab" role="tab" id="tab-orders" aria-controls="panel-orders" aria-selected="false" tabindex="-1">Orders <span class="count" id="order-count">0</span></button>
+            <button class="tab" role="tab" id="tab-deals" aria-controls="panel-deals" aria-selected="false" tabindex="-1">Deals</button>
+            <button class="tab" role="tab" id="tab-notes" aria-controls="panel-notes" aria-selected="false" tabindex="-1">Notes</button>
+            <button class="tab" role="tab" id="tab-activity" aria-controls="panel-activity" aria-selected="false" tabindex="-1">Activity</button>
+          </div>
+
+          <div class="tab-panel card-body" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" tabindex="0">
+            <div class="flex items-center justify-between wrap gap-2 mb-2">
+              <div><h3 class="section-title">Spend over time</h3><p class="text-xs text-2">Monthly order value, last 12 months</p></div>
+            </div>
+            <div id="spend-chart" class="chart" style="--chart-h:260px"></div>
+            <h3 class="section-title mt-6 mb-2">Latest orders</h3>
+            <ul class="list" id="latest-orders"></ul>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" id="panel-orders" aria-labelledby="tab-orders" tabindex="0" hidden>
+            <div class="table-wrap">
+              <table class="table table-cards is-clickable">
+                <caption class="sr-only">Orders for this customer</caption>
+                <thead><tr><th scope="col">Order</th><th scope="col">Date</th><th scope="col">Items</th><th scope="col">Payment</th><th scope="col">Status</th><th scope="col" class="num">Total</th></tr></thead>
+                <tbody id="orders-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tab-panel card-body" role="tabpanel" id="panel-deals" aria-labelledby="tab-deals" tabindex="0" hidden>
+            <div class="stack-sm" id="deals"></div>
+          </div>
+
+          <div class="tab-panel card-body" role="tabpanel" id="panel-notes" aria-labelledby="tab-notes" tabindex="0" hidden>
+            <form class="stack-sm" id="note-form" data-validate novalidate>
+              <div class="field">
+                <label class="label" for="note">Add a note</label>
+                <textarea class="textarea" id="note" name="note" required minlength="3" placeholder="Summarize a call, meeting or next step…" data-error="Write at least a few characters."></textarea>
+              </div>
+              <div class="flex justify-between items-center wrap gap-2">
+                <label class="check"><input type="checkbox" name="pin">Pin to top</label>
+                <button class="btn btn-primary" type="submit"><i class="ph ph-note-pencil"></i>Save note</button>
+              </div>
+            </form>
+            <ul class="timeline mt-6" id="notes"></ul>
+          </div>
+
+          <div class="tab-panel card-body" role="tabpanel" id="panel-activity" aria-labelledby="tab-activity" tabindex="0" hidden>
+            <ul class="timeline" id="activity"></ul>
+          </div>
+        </section>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/plugins/apexcharts/apexcharts.min.js"></script>
+<script>
+  const { fmt, esc, avatar, badge, chart, param, $, toast, me } = App;
+  const orderCount = c => DB.orders.filter(o => o.customerId === c.id).length;
+  const c = DB.find('customers', param('id')) || [...DB.customers].sort((a, b) => orderCount(b) - orderCount(a))[0];
+  const orders = DB.orders.filter(o => o.customerId === c.id);
+  const deals = DB.deals.filter(d => d.company === c.company);
+
+  document.title = `${c.name} · Nimbus Admin`;
+  $('#crumb-name').textContent = $('#c-title').textContent = $('#c-name').textContent = c.name;
+  $('#c-subtitle').textContent = `${c.id} · Customer since ${fmt.date(c.since)}`;
+  $('#c-mail').href = `mailto:${c.email}`;
+  $('#c-avatar').innerHTML = avatar(c.name, 'avatar-lg');
+  $('#c-company').textContent = `${c.company} · ${c.city}`;
+  $('#c-badges').innerHTML = `${badge(c.status)}<span class="badge tone-violet">${esc(c.segment)}</span>`;
+  const aov = c.ltv / Math.max(1, c.orders);
+  $('#c-stats').innerHTML = [['Lifetime value', fmt.money(c.ltv)], ['Orders', fmt.num(c.orders)], ['Avg. order', fmt.money(aov)], ['Open deals', deals.filter(d => d.stage !== 'won').length]]
+    .map(([k, v]) => `<div class="mini-stat"><small>${k}</small><strong>${v}</strong></div>`).join('');
+  $('#c-info').innerHTML = [['envelope-simple', 'Email', `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`], ['phone', 'Phone', esc(c.phone)], ['map-pin', 'Location', esc(c.city)],
+    ['calendar-blank', 'Last order', fmt.date(c.lastOrder)], ['credit-card', 'Payment terms', esc(c.tags[1])]]
+    .map(([i, k, v]) => `<li><i class="ph ph-${i}"></i><div><small>${k}</small>${v}</div></li>`).join('');
+  const renderTags = () => { $('#c-tags').innerHTML = c.tags.map((t, i) => `<span class="chip">${esc(t)}<button class="chip-remove" type="button" data-i="${i}" aria-label="Remove tag ${esc(t)}"><i class="ph ph-x"></i></button></span>`).join('') || '<p class="text-sm text-3">No tags yet.</p>'; };
+  renderTags();
+  $('#c-tags').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) { c.tags.splice(+b.dataset.i, 1); renderTags(); } });
+  $('#add-tag').addEventListener('click', () => {
+    if ($('#tag-input')) return $('#tag-input').focus();
+    $('#c-tags').insertAdjacentHTML('beforeend', '<input class="input input-sm" id="tag-input" placeholder="New tag, then Enter" aria-label="New tag" style="width:170px">');
+    const input = $('#tag-input');
+    input.focus();
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && input.value.trim()) { c.tags.push(input.value.trim()); renderTags(); }
+      if (e.key === 'Escape') renderTags();
+    });
+    input.addEventListener('blur', () => setTimeout(renderTags, 150));
+  });
+  $('#c-owner').innerHTML = `<div class="flex items-center gap-3">${avatar(c.owner)}<div class="grow"><p class="fw-600">${esc(c.owner)}</p><p class="text-xs text-3">Account Executive</p></div><a class="btn btn-soft btn-sm" href="messages.html"><i class="ph ph-chat-circle-dots"></i>Message</a></div>`;
+
+  // Spend chart (single series — no legend needed)
+  const spend = DB.months.map((_, i) => Math.round((c.ltv / 18) * (0.45 + ((i * 37 + c.orders) % 11) / 10)));
+  chart('#spend-chart', {
+    chart: { type: 'bar', height: 260 },
+    series: [{ name: 'Order value', data: spend }],
+    colors: ['--chart-1'],
+    plotOptions: { bar: { columnWidth: '42%' } },
+    xaxis: { categories: DB.months },
+    yaxis: { labels: { formatter: v => fmt.cash(v) } },
+    tooltip: { y: { formatter: v => fmt.money(v) } },
+    table: { format: v => fmt.money(v) },
+  });
+
+  // Orders
+  $('#order-count').textContent = orders.length;
+  const orderRow = o => `<tr><td class="cell-main" data-label="Order"><a class="fw-600" href="order-detail.html?id=${o.id}">#${o.id}</a></td><td data-label="Date">${fmt.date(o.date)}</td>
+    <td data-label="Items">${o.items.reduce((s, x) => s + x.qty, 0)}</td><td data-label="Payment">${badge(o.payment)}</td><td data-label="Status">${badge(o.status)}</td><td class="num fw-600" data-label="Total">${fmt.money(o.total, 2)}</td></tr>`;
+  $('#orders-body').innerHTML = orders.length ? orders.map(orderRow).join('')
+    : `<tr class="empty-row"><td colspan="6"><div class="empty"><span class="icon-tile tone-neutral"><i class="ph ph-shopping-cart-simple"></i></span><h3>No orders yet</h3><p>Orders placed by this customer will appear here.</p></div></td></tr>`;
+  $('#orders-body').addEventListener('click', e => { const a = e.target.closest('tr')?.querySelector('a'); if (a && !e.target.closest('a')) location.href = a.href; });
+  $('#latest-orders').innerHTML = orders.slice(0, 3).map(o => `<li class="list-item"><span class="thumb-icon tone-${o.items[0].tone}"><i class="ph ph-${o.items[0].icon}"></i></span>
+    <span class="list-body"><a class="list-title" href="order-detail.html?id=${o.id}">#${o.id}</a><span class="list-meta">${fmt.date(o.date)} · ${o.items.length} product${o.items.length > 1 ? 's' : ''}</span></span>
+    <span class="list-end">${fmt.money(o.total, 2)}<small>${esc(o.status)}</small></span></li>`).join('') || '<li class="text-sm text-3">No orders yet.</li>';
+
+  // Deals
+  const stageName = id => DB.stages.find(s => s.id === id).name;
+  $('#deals').innerHTML = deals.length ? deals.map(d => `
+    <div class="flex items-center gap-3 wrap" style="padding:14px;border:1px solid var(--border);border-radius:14px">
+      <span class="icon-tile sm tone-primary"><i class="ph ph-handshake"></i></span>
+      <div class="grow"><p class="fw-600">${esc(d.title)}</p><p class="text-xs text-3">Closes ${fmt.date(d.close)} · Owner ${esc(d.owner)}</p></div>
+      <span class="badge tone-${d.stage === 'won' ? 'success' : 'violet'}">${stageName(d.stage)}</span><span class="fw-700">${fmt.money(d.value)}</span></div>`).join('')
+    : `<div class="empty"><span class="icon-tile tone-primary"><i class="ph ph-handshake"></i></span><h3>No open deals</h3><p>Start a new opportunity for ${esc(c.company)}.</p><a class="btn btn-primary mt-2" href="deals.html"><i class="ph ph-plus"></i>Create deal</a></div>`;
+
+  // Notes
+  const notes = [
+    { who: c.owner, text: `Quarterly check-in went well. ${c.company} is planning to expand to two new locations next quarter.`, time: new Date(Date.now() - 2 * 864e5).toISOString() },
+    { who: me.name, text: 'Agreed on net-30 payment terms. Send updated contract before month end.', time: new Date(Date.now() - 9 * 864e5).toISOString() },
+  ];
+  const renderNotes = () => { $('#notes').innerHTML = notes.map(n => `<li class="timeline-item">${avatar(n.who, 'avatar-sm')}<div><p class="timeline-title">${esc(n.who)} ${n.pin ? '<span class="badge tone-warning"><i class="ph ph-push-pin"></i>Pinned</span>' : ''}</p><p class="timeline-text">${esc(n.text)}</p><p class="timeline-meta">${fmt.ago(n.time)}</p></div></li>`).join(''); };
+  renderNotes();
+  $('#note-form').addEventListener('valid', e => {
+    const n = { who: me.name, text: e.detail.note, time: new Date().toISOString(), pin: !!e.detail.pin };
+    notes.splice(n.pin ? 0 : notes.filter(x => x.pin).length, 0, n); // new notes go below pinned ones
+    renderNotes(); toast('Note saved');
+  });
+
+  // Activity
+  const acts = [
+    ...orders.slice(0, 3).map(o => ['shopping-cart-simple', 'primary', `Placed order <a href="order-detail.html?id=${o.id}">#${o.id}</a>`, fmt.money(o.total, 2), o.date]),
+    ['envelope-open', 'info', 'Opened email “Your September statement”', 'Newsletter · Finance', new Date(Date.now() - 3 * 864e5).toISOString()],
+    ['phone-call', 'success', `Call with ${esc(c.owner)}`, '18 min · Renewal discussion', new Date(Date.now() - 6 * 864e5).toISOString()],
+    ['receipt', 'violet', 'Invoice paid', 'Bank transfer · Net-30', new Date(Date.now() - 12 * 864e5).toISOString()],
+    ['user-plus', 'pink', 'Account created', `Source: ${pickSource()}`, c.since],
+  ];
+  function pickSource() { return ['Website', 'Referral', 'Trade show'][c.orders % 3]; }
+  $('#activity').innerHTML = acts.map(([icon, tone, title, meta, time]) => `<li class="timeline-item"><span class="timeline-icon tone-${tone}"><i class="ph ph-${icon}"></i></span><div><p class="timeline-title">${title}</p><p class="timeline-text">${meta}</p><p class="timeline-meta">${fmt.date(time)}</p></div></li>`).join('');
+</script>
+</body>
+</html>

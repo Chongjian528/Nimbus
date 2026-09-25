@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Billing & Plans · Nimbus Admin</title>
+  <meta name="description" content="Billing & Plans — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Account</span><span aria-current="page">Billing &amp; plans</span></nav>
+          <h1 class="page-title">Billing &amp; plans</h1>
+          <p class="page-subtitle">Manage your subscription, usage and payment methods.</p>
+        </div>
+      </div>
+
+      <section class="row stretch">
+        <div class="card xl-8">
+          <div class="card-header"><div><h2 class="card-title">Current plan</h2><p class="card-subtitle">Renews on <span id="renew"></span></p></div><span class="badge badge-lg tone-primary"><i class="ph ph-sparkle"></i>Growth · Annual</span></div>
+          <div class="card-body stack">
+            <div class="flex items-end gap-2 wrap"><span class="plan-price">$1,188</span><span class="text-2 text-sm" style="margin-bottom:4px">per year · 25 seats included</span></div>
+            <div class="row" id="usage"></div>
+          </div>
+          <div class="card-footer flex wrap gap-2 justify-between items-center"><span class="text-sm text-2"><i class="ph ph-info"></i> Need more seats? Add them any time — you’ll only pay the difference.</span><a class="btn btn-soft btn-sm" href="#plans"><i class="ph ph-arrow-circle-up"></i>Change plan</a></div>
+        </div>
+        <div class="card xl-4">
+          <div class="card-header"><div><h2 class="card-title">Payment method</h2><p class="card-subtitle">Charged automatically on renewal</p></div></div>
+          <div class="card-body stack-sm">
+            <div class="pay-card">
+              <div class="flex justify-between items-start"><strong>Nimbus Inc.</strong><i class="ph ph-contactless-payment" style="font-size:26px"></i></div>
+              <p class="num">•••• •••• •••• 4242</p>
+              <div class="flex justify-between"><div><small>Card holder</small><p class="fw-600">Olivia Carter</p></div><div class="text-end"><small>Expires</small><p class="fw-600">08/28</p></div></div>
+            </div>
+            <button class="btn btn-secondary" type="button" data-modal="#card-modal"><i class="ph ph-credit-card"></i>Update card</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="plans" class="stack" aria-labelledby="plans-title">
+        <div class="flex items-center justify-between wrap gap-3">
+          <div><h2 class="section-title" id="plans-title">Plans</h2><p class="text-sm text-2">Simple pricing that grows with your team.</p></div>
+          <div class="segmented" data-segmented id="cycle" aria-label="Billing cycle">
+            <button type="button" aria-pressed="false" data-value="monthly">Monthly</button>
+            <button type="button" aria-pressed="true" data-value="yearly">Yearly <span class="badge tone-success" style="height:20px">−20%</span></button>
+          </div>
+        </div>
+        <div class="plans" id="plan-cards"></div>
+      </section>
+
+      <section class="card" aria-labelledby="history-title">
+        <div class="card-header"><div><h2 class="card-title" id="history-title">Billing history</h2><p class="card-subtitle">Download invoices for your records</p></div></div>
+        <div class="card-body flush mt-3">
+          <div class="table-wrap">
+            <table class="table table-cards">
+              <caption class="sr-only">Billing history</caption>
+              <thead><tr><th scope="col">Invoice</th><th scope="col">Date</th><th scope="col">Plan</th><th scope="col" class="num">Amount</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Download</span></th></tr></thead>
+              <tbody id="history"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <dialog class="modal" id="card-modal" aria-labelledby="card-title">
+        <form class="modal-form" data-validate novalidate data-success="Payment method updated">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="card-title">Update card</h2><p class="modal-desc">Demo form — no card data is sent anywhere.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body form-grid cols-2">
+            <div class="field span-all"><label class="label" for="cc-name">Name on card</label><input class="input" id="cc-name" name="name" required autocomplete="cc-name"></div>
+            <div class="field span-all"><label class="label" for="cc-num">Card number</label><div class="input-icon"><i class="ph ph-credit-card"></i><input class="input" id="cc-num" name="number" required inputmode="numeric" autocomplete="cc-number" pattern="[0-9 ]{15,19}" placeholder="1234 5678 9012 3456" data-error="Enter a valid card number."></div></div>
+            <div class="field"><label class="label" for="cc-exp">Expiry</label><input class="input" id="cc-exp" name="exp" required autocomplete="cc-exp" pattern="(0[1-9]|1[0-2])/[0-9]{2}" placeholder="MM/YY" data-error="Use MM/YY."></div>
+            <div class="field"><label class="label" for="cc-cvc">CVC</label><input class="input" id="cc-cvc" name="cvc" required inputmode="numeric" autocomplete="cc-csc" pattern="[0-9]{3,4}" placeholder="123" data-error="3 or 4 digits."></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Save card</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { fmt, badge, toast, confirm, $ } = App;
+  const renew = new Date(); renew.setMonth(renew.getMonth() + 5);
+  $('#renew').textContent = fmt.date(renew);
+  $('#usage').innerHTML = [['Seats', 19, 25, 'users-three', ''], ['Storage', 68, 100, 'database', 'bar-violet', 'GB'], ['API calls', 812, 1000, 'code', 'bar-warning', 'K'], ['Automations', 34, 50, 'lightning', 'bar-success']]
+    .map(([n, used, max, icon, bar, unit = '']) => `<div class="md-6 xl-3"><div class="flex items-center gap-2 mb-2"><span class="icon-tile sm tone-primary"><i class="ph ph-${icon}"></i></span><span class="fw-600 text-sm">${n}</span></div>
+      <progress class="progress ${bar}" value="${used}" max="${max}" aria-label="${n} used"></progress><p class="text-xs text-3 mt-1">${used}${unit} of ${max}${unit} used</p></div>`).join('');
+
+  const PLANS = [
+    ['Starter', 'For small teams getting organized.', 12, ['Up to 5 seats', 'CRM & invoicing', '1 warehouse', 'Email support'], ['Payroll', 'Automations']],
+    ['Growth', 'Everything a growing business needs.', 49, ['Up to 25 seats', 'Full ERP & CRM suite', '5 warehouses', 'Payroll & expenses', 'Priority support'], ['SSO & audit log']],
+    ['Enterprise', 'Advanced security and scale.', 129, ['Unlimited seats', 'Unlimited warehouses', 'SSO & audit log', 'Custom integrations', 'Dedicated success manager'], []],
+  ];
+  let yearly = true;
+  function renderPlans() {
+    $('#plan-cards').innerHTML = PLANS.map(([name, desc, price, yes, no]) => {
+      const p = yearly ? Math.round(price * 0.8) : price, current = name === 'Growth';
+      return `<article class="card plan${current ? ' is-featured' : ''}">
+        ${current ? '<span class="badge tone-primary plan-flag">Current plan</span>' : ''}
+        <div><h3 class="text-lg fw-700">${name}</h3><p class="text-sm text-2">${desc}</p></div>
+        <p class="plan-price">$${p}<small> /seat/month${yearly ? ', billed yearly' : ''}</small></p>
+        <ul>${yes.map(f => `<li><i class="ph ph-check-circle"></i>${f}</li>`).join('')}${no.map(f => `<li class="off"><i class="ph ph-minus-circle"></i>${f}</li>`).join('')}</ul>
+        <button class="btn ${current ? 'btn-secondary' : 'btn-primary'} btn-block" type="button" data-plan="${name}" ${current ? 'disabled' : ''}>${current ? 'Your plan' : name === 'Enterprise' ? 'Talk to sales' : 'Downgrade'}</button>
+      </article>`;
+    }).join('');
+  }
+  renderPlans();
+  $('#cycle').addEventListener('segment', e => { yearly = e.detail === 'yearly'; renderPlans(); });
+  $('#plan-cards').addEventListener('click', async e => {
+    const b = e.target.closest('[data-plan]');
+    if (!b) return;
+    if (b.dataset.plan === 'Enterprise') return toast('Our sales team will reach out within one business day', { title: 'Request sent' });
+    if (await confirm({ title: 'Switch to Starter?', text: 'You’ll lose payroll and automations at the end of the billing period.', confirm: 'Switch plan', tone: 'warning' })) toast('Plan change scheduled for your next renewal', { type: 'warning' });
+  });
+
+  $('#history').innerHTML = Array.from({ length: 6 }, (_, i) => { const d = new Date(); d.setMonth(d.getMonth() - i * 2); return [d, i === 0 ? 1188 : i < 3 ? 99 : 588, i === 0 ? 'Growth · Annual' : i < 3 ? 'Extra seats' : 'Starter · Annual']; })
+    .map(([d, amt, plan], i) => `<tr><td class="cell-main" data-label="Invoice"><span class="fw-600">NB-${String(20480 - i * 37)}</span></td><td data-label="Date">${fmt.date(d)}</td><td data-label="Plan">${plan}</td>
+      <td class="num fw-600" data-label="Amount">${fmt.money(amt, 2)}</td><td data-label="Status">${badge('Paid')}</td>
+      <td data-label="Download"><button class="btn btn-ghost btn-sm" type="button" onclick="App.toast('Invoice downloaded', { type: 'info' })"><i class="ph ph-download-simple"></i>PDF</button></td></tr>`).join('');
+</script>
+</body>
+</html>

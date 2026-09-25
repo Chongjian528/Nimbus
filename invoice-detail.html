@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invoice Preview · Nimbus Admin</title>
+  <meta name="description" content="Invoice Preview — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><a href="invoices.html">Invoices</a><span aria-current="page" id="crumb"></span></nav>
+          <h1 class="page-title" id="title">Invoice</h1>
+          <p class="page-subtitle" id="subtitle"></p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" type="button" data-action="print"><i class="ph ph-printer"></i>Print / PDF</button>
+          <button class="btn btn-secondary" type="button" data-modal="#send-modal"><i class="ph ph-paper-plane-tilt"></i>Send</button>
+          <button class="btn btn-primary" type="button" id="mark-paid"><i class="ph ph-check-circle"></i>Mark as paid</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <article class="card xl-8 invoice" aria-label="Invoice document">
+          <div class="invoice-head">
+            <div class="stack-sm">
+              <div class="flex items-center gap-3">
+                <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true" style="width:44px;height:44px"><defs><linearGradient id="ig" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a94ff"/><stop offset="1" stop-color="#4e5be6"/></linearGradient></defs><rect width="36" height="36" rx="11" fill="url(#ig)"/><path d="M12 25h12a4.6 4.6 0 0 0 .5-9.18A6.2 6.2 0 0 0 12.6 17.3 3.9 3.9 0 0 0 12 25z" fill="#fff"/></svg>
+                <div><p class="fw-700 text-lg">Nimbus Inc.</p><p class="text-xs text-3">nimbus.io · billing@nimbus.io</p></div>
+              </div>
+              <p class="text-sm text-2">500 Congress Ave, Suite 1200<br>Austin, TX 78701, United States</p>
+            </div>
+            <div class="text-end stack-sm" style="justify-items:end">
+              <p class="text-xs text-3 fw-700" style="letter-spacing:.08em">INVOICE</p>
+              <p class="fw-800" style="font-size:1.5rem" id="inv-id"></p>
+              <span id="inv-status"></span>
+            </div>
+          </div>
+
+          <div class="invoice-parties">
+            <div><h3>Billed to</h3><p id="bill-to"></p></div>
+            <div><h3>Invoice details</h3><dl class="meta-list" id="inv-meta" style="font-size:.875rem"></dl></div>
+          </div>
+
+          <div class="table-wrap" style="border:1px solid var(--border);border-radius:14px">
+            <table class="table">
+              <caption class="sr-only">Invoice line items</caption>
+              <thead><tr><th scope="col">Description</th><th scope="col" class="num">Qty</th><th scope="col" class="num">Rate</th><th scope="col" class="num">Amount</th></tr></thead>
+              <tbody id="lines"></tbody>
+            </table>
+          </div>
+          <div class="invoice-totals" id="totals"></div>
+
+          <hr>
+          <div class="row">
+            <div class="md-6"><h3 class="text-xs text-3 fw-700 mb-2" style="letter-spacing:.06em">PAYMENT INSTRUCTIONS</h3>
+              <p class="text-sm text-2">Bank: First Harbor Bank<br>Account name: Nimbus Inc.<br>Account: 4821 0093 7730 · Routing: 021000089<br>Reference: <span class="fw-600" id="ref"></span></p></div>
+            <div class="md-6"><h3 class="text-xs text-3 fw-700 mb-2" style="letter-spacing:.06em">NOTES</h3>
+              <p class="text-sm text-2">Thank you for your business! Payments received after the due date are subject to a 1.5% monthly late fee.</p></div>
+          </div>
+        </article>
+
+        <aside class="xl-4 stack no-print" aria-label="Invoice actions">
+          <section class="card">
+            <div class="card-header"><h2 class="card-title">Payment status</h2></div>
+            <div class="card-body stack-sm">
+              <div class="flex justify-between items-center"><span class="text-2 text-sm">Amount due</span><span class="fw-800 text-lg" id="due-amount"></span></div>
+              <progress class="progress bar-success" id="paid-progress" value="0" max="100" aria-label="Paid percentage"></progress>
+              <p class="text-xs text-3" id="due-note"></p>
+            </div>
+          </section>
+          <section class="card">
+            <div class="card-header"><h2 class="card-title">Record a payment</h2></div>
+            <form class="card-body stack-sm" id="payment-form" data-validate novalidate>
+              <div class="field"><label class="label" for="p-amount">Amount</label><div class="input-group"><span class="addon">$</span><input class="input" id="p-amount" name="amount" type="number" min="0.01" step="0.01" required inputmode="decimal"></div></div>
+              <div class="field"><label class="label" for="p-date">Payment date</label><input class="input" id="p-date" name="date" type="date" required></div>
+              <div class="field"><label class="label" for="p-method">Method</label><select class="select" id="p-method" name="method"><option>Bank transfer</option><option>Credit card</option><option>Check</option><option>Cash</option></select></div>
+              <button class="btn btn-primary" type="submit"><i class="ph ph-plus"></i>Record payment</button>
+            </form>
+          </section>
+          <section class="card">
+            <div class="card-header"><h2 class="card-title">Activity</h2></div>
+            <div class="card-body"><ul class="timeline" id="activity"></ul></div>
+          </section>
+        </aside>
+      </div>
+
+      <dialog class="modal" id="send-modal" aria-labelledby="send-title">
+        <form class="modal-form" data-validate novalidate id="send-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="send-title">Send invoice</h2><p class="modal-desc">A PDF copy is attached automatically.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body stack-sm">
+            <div class="field"><label class="label" for="s-to">To</label><input class="input" id="s-to" name="to" type="email" required></div>
+            <div class="field"><label class="label" for="s-subject">Subject</label><input class="input" id="s-subject" name="subject" required></div>
+            <div class="field"><label class="label" for="s-msg">Message</label><textarea class="textarea" id="s-msg" name="message" required></textarea></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit"><i class="ph ph-paper-plane-tilt"></i>Send invoice</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { fmt, esc, badge, param, $, toast } = App;
+  // Accept ?id=INV-… or ?order=ORD-… (orders are converted into an invoice view)
+  const order = DB.find('orders', param('order'));
+  const inv = DB.find('invoices', param('id')) || (order ? {
+    id: `INV-${order.id.slice(4)}`, customer: order.customer, company: order.company, email: order.email, city: order.address,
+    issued: order.date, due: new Date(new Date(order.date).getTime() + 30 * 864e5).toISOString(),
+    lines: order.items.map(x => ({ desc: x.name, qty: x.qty, rate: x.price })), subtotal: order.subtotal - order.discount, tax: order.tax, total: order.total,
+    status: order.payment === 'Paid' ? 'Paid' : 'Pending',
+  } : DB.invoices.find(i => i.status === 'Pending'));
+  let paid = inv.status === 'Paid' ? inv.total : 0;
+
+  document.title = `${inv.id} · Nimbus Admin`;
+  $('#crumb').textContent = inv.id;
+  $('#title').textContent = `Invoice ${inv.id}`;
+  $('#subtitle').textContent = `${inv.company} · Issued ${fmt.date(inv.issued)}`;
+  $('#inv-id').textContent = inv.id;
+  $('#ref').textContent = inv.id;
+  $('#bill-to').innerHTML = `<strong>${esc(inv.company)}</strong><br>Attn: ${esc(inv.customer)}<br>${esc(inv.city)}<br>${esc(inv.email)}`;
+  $('#inv-meta').innerHTML = `<dt>Issue date</dt><dd>${fmt.date(inv.issued)}</dd><dt>Due date</dt><dd>${fmt.date(inv.due)}</dd><dt>Terms</dt><dd>Net 30</dd><dt>Currency</dt><dd>USD</dd>`;
+  $('#lines').innerHTML = inv.lines.map(l => `<tr><td class="fw-600">${esc(l.desc)}</td><td class="num">${l.qty}</td><td class="num">${fmt.money(l.rate, 2)}</td><td class="num fw-600">${fmt.money(l.qty * l.rate, 2)}</td></tr>`).join('');
+  $('#totals').innerHTML = `<div><span class="text-2">Subtotal</span><span>${fmt.money(inv.subtotal, 2)}</span></div><div><span class="text-2">Tax (8%)</span><span>${fmt.money(inv.tax, 2)}</span></div><div class="grand"><span>Total due</span><span>${fmt.money(inv.total, 2)}</span></div>`;
+
+  const history = [['paper-plane-tilt', 'primary', 'Invoice sent', `Emailed to ${inv.email}`, inv.issued], ['eye', 'info', 'Viewed by client', '2 views', new Date(new Date(inv.issued).getTime() + 864e5).toISOString()]];
+  function render() {
+    const due = Math.max(0, inv.total - paid), status = due === 0 ? 'Paid' : new Date(inv.due) < Date.now() ? 'Overdue' : paid > 0 ? 'Partial' : inv.status;
+    $('#inv-status').innerHTML = badge(status);
+    $('#due-amount').textContent = fmt.money(due, 2);
+    $('#paid-progress').value = Math.round(paid / inv.total * 100);
+    $('#due-note').textContent = due === 0 ? 'Paid in full — thank you!' : `${fmt.money(paid, 2)} paid · due ${fmt.date(inv.due)}`;
+    $('#mark-paid').disabled = due === 0;
+    $('#p-amount').value = due ? due.toFixed(2) : '';
+    $('#activity').innerHTML = history.map(([i, t, title, meta, time]) => `<li class="timeline-item"><span class="timeline-icon tone-${t}"><i class="ph ph-${i}"></i></span><div><p class="timeline-title">${title}</p><p class="timeline-text">${esc(meta)}</p><p class="timeline-meta">${fmt.date(time)}</p></div></li>`).reverse().join('');
+  }
+  if (paid) history.push(['check-circle', 'success', 'Payment received', `${fmt.money(inv.total, 2)} via bank transfer`, new Date(new Date(inv.issued).getTime() + 12 * 864e5).toISOString()]);
+  render();
+
+  $('#p-date').value = DB.ymd(new Date());
+  $('#payment-form').addEventListener('valid', e => {
+    const amt = Math.min(+e.detail.amount, inv.total - paid);
+    paid += amt;
+    history.push(['currency-dollar', 'success', 'Payment recorded', `${fmt.money(amt, 2)} via ${e.detail.method}`, new Date(e.detail.date + 'T12:00').toISOString()]);
+    render(); $('#p-date').value = DB.ymd(new Date());
+    toast(`${fmt.money(amt, 2)} recorded against ${inv.id}`);
+  });
+  $('#mark-paid').addEventListener('click', () => {
+    history.push(['check-circle', 'success', 'Marked as paid', 'Manually by Olivia Carter', new Date().toISOString()]);
+    paid = inv.total; render(); toast(`${inv.id} marked as paid`);
+  });
+
+  const f = $('#send-form');
+  const fillSend = () => {
+    f.elements.to.value = inv.email;
+    f.elements.subject.value = `Invoice ${inv.id} from Nimbus Inc.`;
+    f.elements.message.value = `Hi ${inv.customer.split(' ')[0]},\n\nPlease find attached invoice ${inv.id} for ${fmt.money(inv.total, 2)}, due ${fmt.date(inv.due)}.\n\nThank you,\nOlivia`;
+  };
+  fillSend();
+  f.addEventListener('valid', e => { history.push(['paper-plane-tilt', 'primary', 'Invoice re-sent', `Emailed to ${e.detail.to}`, new Date().toISOString()]); render(); fillSend(); toast(`Invoice sent to ${e.detail.to}`); });
+</script>
+</body>
+</html>

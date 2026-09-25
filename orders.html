@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orders · Nimbus Admin</title>
+  <meta name="description" content="Orders — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Sales</span><span aria-current="page">Orders</span></nav>
+          <h1 class="page-title">Orders</h1>
+          <p class="page-subtitle">Track fulfilment, payments and shipping for every channel.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" type="button" data-action="print"><i class="ph ph-download-simple"></i>Export</button>
+          <button class="btn btn-primary" type="button" id="new-order"><i class="ph ph-plus"></i>Create order</button>
+        </div>
+      </div>
+
+      <section class="row" aria-label="Order summary">
+        <article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-warning"><i class="ph ph-hourglass-medium"></i></span><div class="grow"><h2 class="stat-label">Awaiting fulfilment</h2><p class="stat-value" id="k-pending">0</p></div></article>
+        <article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-info"><i class="ph ph-truck"></i></span><div class="grow"><h2 class="stat-label">In transit</h2><p class="stat-value" id="k-shipped">0</p></div></article>
+        <article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-success"><i class="ph ph-check-circle"></i></span><div class="grow"><h2 class="stat-label">Delivered (90d)</h2><p class="stat-value" id="k-delivered">0</p></div></article>
+        <article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-primary"><i class="ph ph-receipt"></i></span><div class="grow"><h2 class="stat-label">Average order</h2><p class="stat-value" id="k-aov">$0</p></div></article>
+      </section>
+
+      <section class="card" id="orders" aria-label="Order list">
+        <div class="tabs" role="tablist" aria-label="Filter by status" id="status-tabs"></div>
+        <div class="table-toolbar">
+          <div class="input-icon"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" placeholder="Search order, customer, company…" aria-label="Search orders" data-table-search></div>
+          <select class="select" data-table-filter="channel" aria-label="Filter by channel">
+            <option value="all">All channels</option><option>Online store</option><option>Marketplace</option><option>Sales rep</option><option>Retail</option>
+          </select>
+          <select class="select" data-table-filter="payment" aria-label="Filter by payment">
+            <option value="all">Any payment</option><option>Paid</option><option>Unpaid</option><option>Refunded</option>
+          </select>
+          <select class="select" data-table-filter="date" aria-label="Filter by date">
+            <option value="all">Any time</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option>
+          </select>
+        </div>
+        <div class="bulk-bar" data-table-bulk hidden>
+          <span><span data-bulk-count>0</span> selected</span><span class="spacer"></span>
+          <button class="btn btn-sm btn-secondary" type="button" id="bulk-labels"><i class="ph ph-printer"></i>Print labels</button>
+          <button class="btn btn-sm btn-primary" type="button" id="bulk-ship"><i class="ph ph-truck"></i>Mark as shipped</button>
+        </div>
+        <div class="table-wrap"><table class="table table-cards"></table></div>
+        <div class="table-footer"><span data-table-info></span><nav class="pagination" aria-label="Pagination" data-table-pager></nav></div>
+      </section>
+
+      <dialog class="modal modal-lg" id="order-modal" aria-labelledby="order-title">
+        <form class="modal-form" data-validate novalidate id="order-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="order-title">Create order</h2><p class="modal-desc">Add products, quantities and a customer.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body stack-sm">
+            <div class="form-grid cols-2">
+              <div class="field"><label class="label" for="o-customer">Customer <span class="req">*</span></label><select class="select" id="o-customer" name="customer" required data-error="Choose a customer."><option value="">Select a customer…</option></select></div>
+              <div class="field"><label class="label" for="o-channel">Channel</label><select class="select" id="o-channel" name="channel"><option>Sales rep</option><option>Online store</option><option>Marketplace</option><option>Retail</option></select></div>
+            </div>
+            <div>
+              <div class="label-row mb-2"><span class="label">Line items</span><button class="btn btn-soft btn-sm" type="button" id="add-line"><i class="ph ph-plus"></i>Add product</button></div>
+              <div class="table-wrap" style="border:1px solid var(--border);border-radius:14px">
+                <table class="table table-sm">
+                  <thead><tr><th scope="col">Product</th><th scope="col" style="width:96px">Qty</th><th scope="col" class="num">Price</th><th scope="col" class="num">Total</th><th scope="col"><span class="sr-only">Remove</span></th></tr></thead>
+                  <tbody id="lines"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="invoice-totals" id="order-totals"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Create order</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { fmt, esc, avatar, badge, rowMenu, table, toast, confirm, openModal, $ } = App;
+  const count = s => list.data.filter(o => o.status === s).length;
+  const renderKpis = () => {
+    $('#k-pending').textContent = count('Pending') + count('Processing');
+    $('#k-shipped').textContent = count('Shipped');
+    $('#k-delivered').textContent = count('Delivered');
+    $('#k-aov').textContent = fmt.money(list.data.reduce((s, o) => s + o.total, 0) / list.data.length);
+  };
+
+  const list = table('#orders', {
+    data: [...DB.orders], caption: 'Orders', selectable: true, pageSize: 10, sort: ['date', 'desc'],
+    search: ['id', 'customer', 'company', 'email'],
+    filters: { date: (o, days) => (Date.now() - new Date(o.date)) / 864e5 <= +days },
+    columns: [
+      { key: 'id', label: 'Order', sortable: true, cls: 'cell-main', render: o => `<a class="fw-700 nowrap" href="order-detail.html?id=${o.id}">#${o.id}</a><span class="cell-sub">${o.items.reduce((s, x) => s + x.qty, 0)} items · ${esc(o.channel)}</span>` },
+      { key: 'customer', label: 'Customer', sortable: true, render: o => `<div class="cell-user">${avatar(o.customer, 'avatar-sm')}<div><strong>${esc(o.customer)}</strong><small>${esc(o.company)}</small></div></div>` },
+      { key: 'date', label: 'Date', sortable: true, render: o => `<span class="cell-title fw-500">${fmt.date(o.date)}</span><span class="cell-sub">${fmt.time(o.date)}</span>` },
+      { key: 'payment', label: 'Payment', sortable: true, cls: 'col-xl', render: o => badge(o.payment) },
+      { key: 'status', label: 'Fulfilment', sortable: true, render: o => badge(o.status) },
+      { key: 'total', label: 'Total', sortable: true, cls: 'num', render: o => `<span class="fw-700">${fmt.money(o.total, 2)}</span>` },
+      { label: '', cls: 'cell-actions', render: o => rowMenu([
+        { label: 'View details', icon: 'eye', href: `order-detail.html?id=${o.id}` },
+        { label: 'Print invoice', icon: 'printer', href: `invoice-detail.html?order=${o.id}` },
+        { label: 'Mark as shipped', icon: 'truck', action: 'ship' },
+        '-', { label: 'Cancel order', icon: 'x-circle', action: 'cancel', danger: true },
+      ], `Actions for order ${o.id}`) },
+    ],
+  });
+
+  const STATUSES = ['all', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+  let current = 'all';
+  const renderTabs = () => {
+    $('#status-tabs').innerHTML = STATUSES.map(s => `<button class="tab" role="tab" type="button" data-value="${s}" aria-selected="${s === current}" ${s === current ? '' : 'tabindex="-1"'}>${s === 'all' ? 'All orders' : s}<span class="count">${s === 'all' ? list.data.length : count(s)}</span></button>`).join('');
+  };
+  $('#status-tabs').addEventListener('tabchange', e => { current = e.detail; list.filter('status', current); });
+  const refresh = () => { list.render(); renderTabs(); renderKpis(); };
+  renderTabs(); renderKpis();
+
+  $('#orders').addEventListener('click', async e => {
+    const b = e.target.closest('[data-row-action]');
+    if (!b) return;
+    const o = list.find(b.closest('tr').dataset.id);
+    if (b.dataset.rowAction === 'ship') { o.status = 'Shipped'; refresh(); toast(`#${o.id} marked as shipped`, { title: 'Fulfilment updated' }); }
+    if (b.dataset.rowAction === 'cancel' && await confirm({ title: `Cancel order #${o.id}?`, text: 'The customer will be notified and any payment refunded.', confirm: 'Cancel order' })) {
+      o.status = 'Cancelled'; o.payment = 'Refunded'; refresh(); toast(`#${o.id} was cancelled`, { type: 'warning' });
+    }
+  });
+  $('#bulk-ship').addEventListener('click', () => {
+    const ids = list.selected;
+    ids.forEach(id => { const o = list.find(id); if (o.status !== 'Cancelled') o.status = 'Shipped'; });
+    list.clearSelection(); refresh(); toast(`${ids.length} orders marked as shipped`);
+  });
+  $('#bulk-labels').addEventListener('click', () => toast(`${list.selected.length} shipping labels sent to the printer`, { type: 'info' }));
+
+  // Create order modal with live line items
+  $('#o-customer').insertAdjacentHTML('beforeend', DB.customers.map(c => `<option value="${c.id}">${esc(c.name)} — ${esc(c.company)}</option>`).join(''));
+  const productOpts = DB.products.filter(p => p.stock > 0).map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  let lines = [];
+  function renderLines() {
+    $('#lines').innerHTML = lines.map((l, i) => {
+      const p = DB.find('products', l.id);
+      return `<tr><td><select class="select select-sm" data-line="${i}" data-k="id" aria-label="Product ${i + 1}">${productOpts.replace(`value="${l.id}"`, `value="${l.id}" selected`)}</select></td>
+        <td><input class="input input-sm" type="number" min="1" max="${p.stock}" value="${l.qty}" data-line="${i}" data-k="qty" aria-label="Quantity for line ${i + 1}" inputmode="numeric" required></td>
+        <td class="num">${fmt.money(p.price)}</td><td class="num fw-600">${fmt.money(p.price * l.qty)}</td>
+        <td class="num"><button class="btn btn-ghost btn-icon btn-sm" type="button" data-remove="${i}" aria-label="Remove line ${i + 1}" ${lines.length === 1 ? 'disabled' : ''}><i class="ph ph-trash"></i></button></td></tr>`;
+    }).join('');
+    const sub = lines.reduce((s, l) => s + DB.find('products', l.id).price * l.qty, 0), tax = sub * 0.08;
+    $('#order-totals').innerHTML = `<div><span class="text-2">Subtotal</span><span>${fmt.money(sub, 2)}</span></div><div><span class="text-2">Tax (8%)</span><span>${fmt.money(tax, 2)}</span></div><div class="grand"><span>Total</span><span>${fmt.money(sub + tax, 2)}</span></div>`;
+  }
+  $('#lines').addEventListener('change', e => { const i = e.target.dataset.line; if (i === undefined) return; const k = e.target.dataset.k; lines[i][k] = k === 'qty' ? Math.max(1, +e.target.value || 1) : e.target.value; renderLines(); });
+  $('#lines').addEventListener('click', e => { const b = e.target.closest('[data-remove]'); if (b) { lines.splice(+b.dataset.remove, 1); renderLines(); } });
+  $('#add-line').addEventListener('click', () => { lines.push({ id: DB.products[lines.length % 6].id, qty: 1 }); renderLines(); });
+  $('#new-order').addEventListener('click', () => { lines = [{ id: DB.products[0].id, qty: 1 }]; renderLines(); openModal('#order-modal'); });
+  $('#order-form').addEventListener('valid', e => {
+    const c = DB.find('customers', e.detail.customer);
+    const items = lines.map(l => { const p = DB.find('products', l.id); return { productId: p.id, name: p.name, sku: p.sku, icon: p.icon, tone: p.tone, qty: l.qty, price: p.price }; });
+    const subtotal = items.reduce((s, x) => s + x.qty * x.price, 0), tax = Math.round(subtotal * 8) / 100;
+    const id = `ORD-${list.data.reduce((m, o) => Math.max(m, +o.id.slice(4)), 0) + 1}`;
+    list.add({ id, customerId: c.id, customer: c.name, company: c.company, email: c.email, date: new Date().toISOString(), items, subtotal, discount: 0, shipping: 0, tax, total: subtotal + tax, status: 'Pending', payment: 'Unpaid', channel: e.detail.channel });
+    renderTabs(); renderKpis();
+    toast(`Order #${id} created for ${c.name}`, { title: 'Order created' });
+  });
+</script>
+</body>
+</html>

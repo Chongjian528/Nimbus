@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Attendance & Leave · Nimbus Admin</title>
+  <meta name="description" content="Attendance & Leave — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>People</span><span aria-current="page">Attendance &amp; leave</span></nav>
+          <h1 class="page-title">Attendance &amp; leave</h1>
+          <p class="page-subtitle" id="today"></p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" type="button" id="clock"><i class="ph ph-clock"></i>Clock in</button>
+          <button class="btn btn-primary" type="button" data-modal="#leave-modal"><i class="ph ph-airplane-tilt"></i>Request leave</button>
+        </div>
+      </div>
+
+      <section class="row" aria-label="Today's attendance">
+        <article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-success"><i class="ph ph-user-check"></i></span><div class="grow"><h2 class="stat-label">Present</h2><p class="stat-value">21</p></div><span class="text-xs text-3">of 28</span></article>
+        <article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-warning"><i class="ph ph-clock-countdown"></i></span><div class="grow"><h2 class="stat-label">Late arrivals</h2><p class="stat-value">3</p></div><span class="text-xs text-3">avg 14 min</span></article>
+        <article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-danger"><i class="ph ph-user-minus"></i></span><div class="grow"><h2 class="stat-label">Absent</h2><p class="stat-value">1</p></div><span class="text-xs text-3">unplanned</span></article>
+        <article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-info"><i class="ph ph-airplane-tilt"></i></span><div class="grow"><h2 class="stat-label">On leave</h2><p class="stat-value">3</p></div><span class="text-xs text-3">approved</span></article>
+      </section>
+
+      <section class="row stretch">
+        <div class="card xl-8">
+          <div class="card-header"><div><h2 class="card-title">This week</h2><p class="card-subtitle">Daily attendance by status</p></div></div>
+          <div class="card-body"><div id="week-chart" class="chart" style="--chart-h:280px"></div></div>
+        </div>
+        <div class="card xl-4">
+          <div class="card-header"><div><h2 class="card-title">My leave balance</h2><p class="card-subtitle">Resets on January 1</p></div></div>
+          <div class="card-body stack-sm" id="balances"></div>
+        </div>
+      </section>
+
+      <section class="row stretch">
+        <div class="card xl-6">
+          <div class="card-header"><div><h2 class="card-title">Leave requests</h2><p class="card-subtitle">Waiting for your decision</p></div><span class="badge tone-warning" id="pending-count"></span></div>
+          <div class="card-body"><ul class="list" id="requests"></ul></div>
+        </div>
+        <div class="card xl-6">
+          <div class="card-header"><div><h2 class="card-title">Who’s out</h2><p class="card-subtitle">Next 14 days</p></div></div>
+          <div class="card-body"><ul class="agenda" id="out"></ul></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="log-title">
+        <div class="card-header"><div><h2 class="card-title" id="log-title">Today’s log</h2><p class="card-subtitle">Clock-in and clock-out times</p></div></div>
+        <div class="card-body flush mt-3">
+          <div class="table-wrap">
+            <table class="table table-cards">
+              <caption class="sr-only">Today's attendance log</caption>
+              <thead><tr><th scope="col">Employee</th><th scope="col">Clock in</th><th scope="col">Clock out</th><th scope="col" class="num">Hours</th><th scope="col">Location</th><th scope="col">Status</th></tr></thead>
+              <tbody id="log"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <dialog class="modal" id="leave-modal" aria-labelledby="leave-title">
+        <form class="modal-form" data-validate novalidate id="leave-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="leave-title">Request leave</h2><p class="modal-desc">Your manager will be notified by email.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body form-grid cols-2">
+            <div class="field span-all"><span class="label" id="type-label">Leave type</span>
+              <div class="form-grid cols-3" role="radiogroup" aria-labelledby="type-label">
+                <label class="option-card"><input type="radio" name="type" value="Annual" checked><span><strong>Annual</strong><small>14 days left</small></span></label>
+                <label class="option-card"><input type="radio" name="type" value="Sick"><span><strong>Sick</strong><small>5 days left</small></span></label>
+                <label class="option-card"><input type="radio" name="type" value="Personal"><span><strong>Personal</strong><small>2 days left</small></span></label>
+              </div></div>
+            <div class="field"><label class="label" for="l-from">From</label><input class="input" id="l-from" name="from" type="date" required></div>
+            <div class="field"><label class="label" for="l-to">To</label><input class="input" id="l-to" name="to" type="date" required></div>
+            <div class="field span-all"><label class="label" for="l-reason">Note for your manager</label><textarea class="textarea" id="l-reason" name="reason" placeholder="Optional"></textarea></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Submit request</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/plugins/apexcharts/apexcharts.min.js"></script>
+<script>
+  const { fmt, esc, avatar, badge, chart, toast, $ } = App;
+  $('#today').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  // Stacked statuses use the reserved status colors, always with a legend
+  chart('#week-chart', {
+    chart: { type: 'bar', height: 280, stacked: true },
+    series: [{ name: 'On time', data: [24, 23, 25, 22, 21] }, { name: 'Late', data: [2, 3, 1, 4, 3] }, { name: 'Absent', data: [2, 2, 2, 2, 4] }],
+    colors: ['--status-good', '--status-warning', '--status-critical'],
+    stroke: { width: 2, colors: ['--surface'] },
+    plotOptions: { bar: { columnWidth: '40%', borderRadius: 4, borderRadiusApplication: 'end', borderRadiusWhenStacked: 'last' } },
+    xaxis: { categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+    yaxis: { min: 0, max: 28, tickAmount: 4, labels: { formatter: v => Math.round(v) } },
+    tooltip: { shared: true, intersect: false, y: { formatter: v => `${v} people` } },
+  });
+
+  $('#balances').innerHTML = [['Annual leave', 14, 20, 'sun', 'primary', ''], ['Sick leave', 5, 10, 'first-aid-kit', 'danger', 'bar-danger'], ['Personal days', 2, 3, 'coffee', 'warning', 'bar-warning'], ['Parental leave', 60, 60, 'baby', 'pink', 'bar-pink']]
+    .map(([n, left, total, i, t, bar]) => `<div class="flex items-center gap-3"><span class="icon-tile sm tone-${t}"><i class="ph ph-${i}"></i></span><div class="progress-row grow">
+      <div class="label-row"><span class="fw-600">${n}</span><span>${left} / ${total} days</span></div><progress class="progress ${bar}" value="${left}" max="${total}" aria-label="${n} remaining"></progress></div></div>`).join('');
+
+  const requests = [['Aiden Walker', 'Annual', 3, 2, 'Family trip to Lisbon'], ['Chloe Bennett', 'Sick', 1, 0, 'Doctor’s appointment'], ['Mateo Silva', 'Personal', 1, 6, 'Moving apartments'], ['Priya Singh', 'Annual', 5, 12, 'Wedding']];
+  const renderRequests = () => {
+    $('#pending-count').textContent = `${requests.length} pending`;
+    $('#requests').innerHTML = requests.length ? requests.map(([name, type, days, inDays, note], i) => `<li class="list-item">${avatar(name)}<span class="list-body"><span class="list-title">${esc(name)} · ${type} leave</span>
+      <span class="list-meta">${days} day${days > 1 ? 's' : ''} from ${fmt.day(new Date(Date.now() + inDays * 864e5))} · ${esc(note)}</span></span>
+      <span class="flex gap-1"><button class="btn btn-soft-danger btn-icon btn-sm" type="button" data-decide="${i}" data-ok="0" aria-label="Decline ${esc(name)}'s request"><i class="ph ph-x"></i></button><button class="btn btn-soft-success btn-icon btn-sm" type="button" data-decide="${i}" data-ok="1" aria-label="Approve ${esc(name)}'s request"><i class="ph ph-check"></i></button></span></li>`).join('')
+      : '<li class="empty"><span class="icon-tile tone-success"><i class="ph ph-check-circle"></i></span><h3>All caught up</h3><p>No leave requests waiting.</p></li>';
+  };
+  renderRequests();
+  $('#requests').addEventListener('click', e => {
+    const b = e.target.closest('[data-decide]');
+    if (!b) return;
+    const [name] = requests.splice(+b.dataset.decide, 1)[0];
+    renderRequests();
+    toast(b.dataset.ok === '1' ? `${name}’s leave was approved` : `${name}’s leave was declined`, { type: b.dataset.ok === '1' ? 'success' : 'warning' });
+  });
+
+  $('#out').innerHTML = [['Liam Brooks', 'Annual leave', 0, 4, '--chart-1'], ['Emma Tanaka', 'Conference — RetailX', 2, 3, '--chart-7'], ['Noah Reed', 'Parental leave', 0, 30, '--chart-5'], ['Sara Adams', 'Sick leave', 1, 1, '--chart-8']]
+    .map(([n, why, from, len, c]) => `<li><span class="bar" style="--c:var(${c})"></span>${avatar(n, 'avatar-sm')}<div class="grow"><strong>${esc(n)}</strong><small>${why} · ${fmt.day(new Date(Date.now() + from * 864e5))} – ${fmt.day(new Date(Date.now() + (from + len) * 864e5))}</small></div></li>`).join('');
+
+  const pad = n => String(n).padStart(2, '0');
+  $('#log').innerHTML = DB.employees.slice(0, 8).map((e, i) => {
+    const late = i === 2 || i === 5, absent = i === 7, inH = late ? 9 : 8, inM = late ? 14 + i : 42 + i;
+    const status = absent ? 'Absent' : late ? 'Late' : 'Present';
+    return `<tr><td class="cell-main" data-label="Employee"><div class="cell-user">${avatar(e.name, 'avatar-sm')}<div><strong>${esc(e.name)}</strong><small>${esc(e.department)}</small></div></div></td>
+      <td data-label="Clock in">${absent ? '—' : `${pad(inH)}:${pad(inM)}`}</td><td data-label="Clock out">${absent || i % 3 === 0 ? '—' : `17:${pad(5 + i * 3)}`}</td>
+      <td class="num" data-label="Hours">${absent ? '0.0' : i % 3 === 0 ? 'Working' : (8.2 - (late ? 0.4 : 0)).toFixed(1)}</td><td data-label="Location">${e.status === 'Remote' ? 'Remote' : 'Office'}</td><td data-label="Status">${badge(status)}</td></tr>`;
+  }).join('');
+
+  let clockedIn = false;
+  $('#clock').addEventListener('click', e => {
+    clockedIn = !clockedIn;
+    e.currentTarget.innerHTML = `<i class="ph ph-${clockedIn ? 'sign-out' : 'clock'}"></i>${clockedIn ? 'Clock out' : 'Clock in'}`;
+    toast(clockedIn ? `Clocked in at ${fmt.time(new Date())}` : `Clocked out at ${fmt.time(new Date())}`, { type: 'info' });
+  });
+  $('#l-from').defaultValue = DB.ymd(new Date(Date.now() + 7 * 864e5));
+  $('#l-to').defaultValue = DB.ymd(new Date(Date.now() + 9 * 864e5));
+  $('#leave-form').addEventListener('valid', e => toast(`${e.detail.type} leave requested for ${fmt.day(e.detail.from + 'T12:00')} – ${fmt.day(e.detail.to + 'T12:00')}`, { title: 'Request sent' }));
+</script>
+</body>
+</html>

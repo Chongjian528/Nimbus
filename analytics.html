@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analytics · Nimbus Admin</title>
+  <meta name="description" content="Analytics — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Overview</span><span aria-current="page">Analytics</span></nav>
+          <h1 class="page-title">Analytics</h1>
+          <p class="page-subtitle">Traffic, engagement and conversion across your storefront.</p>
+        </div>
+        <div class="page-actions">
+          <div class="segmented" data-segmented id="range" aria-label="Date range">
+            <button type="button" aria-pressed="false" data-value="7">7D</button>
+            <button type="button" aria-pressed="true" data-value="30">30D</button>
+            <button type="button" aria-pressed="false" data-value="90">90D</button>
+            <button type="button" aria-pressed="false" data-value="365">12M</button>
+          </div>
+          <button class="btn btn-secondary" type="button" data-action="print"><i class="ph ph-download-simple"></i>Export</button>
+        </div>
+      </div>
+
+      <section class="row" aria-label="Key metrics" id="kpis"></section>
+
+      <section class="row stretch">
+        <div class="card xl-8">
+          <div class="card-header">
+            <div><h2 class="card-title">Traffic trend</h2><p class="card-subtitle" id="trend-sub">Sessions and unique visitors</p></div>
+          </div>
+          <div class="card-body"><div id="trend-chart" class="chart" style="--chart-h:320px"></div></div>
+        </div>
+        <div class="card xl-4">
+          <div class="card-header"><div><h2 class="card-title">Traffic sources</h2><p class="card-subtitle">Where sessions come from</p></div></div>
+          <div class="card-body">
+            <div id="source-chart" class="chart" style="--chart-h:230px"></div>
+            <ul class="list mt-2" id="source-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="row stretch">
+        <div class="card xl-5">
+          <div class="card-header"><div><h2 class="card-title">Conversion funnel</h2><p class="card-subtitle">From first visit to purchase</p></div></div>
+          <div class="card-body"><div id="funnel-chart" class="chart" style="--chart-h:300px"></div></div>
+        </div>
+        <div class="card xl-7">
+          <div class="card-header"><div><h2 class="card-title">Busiest hours</h2><p class="card-subtitle">Average sessions by weekday and time of day</p></div></div>
+          <div class="card-body"><div id="heatmap-chart" class="chart" style="--chart-h:300px"></div></div>
+        </div>
+      </section>
+
+      <section class="row stretch">
+        <div class="card xl-7">
+          <div class="card-header"><div><h2 class="card-title">Top pages</h2><p class="card-subtitle">Most visited pages this period</p></div></div>
+          <div class="card-body flush mt-3">
+            <div class="table-wrap">
+              <table class="table table-cards">
+                <caption class="sr-only">Top pages</caption>
+                <thead><tr><th scope="col">Page</th><th scope="col" class="num">Views</th><th scope="col" class="num">Avg. time</th><th scope="col" class="num">Bounce</th><th scope="col">Trend</th></tr></thead>
+                <tbody id="pages"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="card xl-5">
+          <div class="card-header"><div><h2 class="card-title">Top countries</h2><p class="card-subtitle">Share of sessions</p></div></div>
+          <div class="card-body stack-sm" id="countries"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div><h2 class="card-title">Customer retention</h2><p class="card-subtitle">Share of each weekly cohort that purchased again</p></div>
+          <div class="legend"><span><span class="swatch" style="--c:color-mix(in srgb,var(--chart-1) 12%,var(--surface))"></span>Low</span><span><span class="swatch" style="--c:color-mix(in srgb,var(--chart-1) 60%,var(--surface))"></span>High</span></div>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table class="table table-sm cohort">
+              <caption class="sr-only">Weekly retention by cohort</caption>
+              <thead id="cohort-head"></thead>
+              <tbody id="cohort-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/plugins/apexcharts/apexcharts.min.js"></script>
+<script>
+  const { fmt, esc, chart, areaFill, delta } = App;
+  let s = 7; const noise = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+
+  // Build a trend for any range: day labels for ≤90 days, month labels for a year
+  function trend(days) {
+    const pts = days === 365 ? 12 : days === 90 ? 13 : days;
+    const labels = Array.from({ length: pts }, (_, i) => {
+      const d = new Date();
+      if (days === 365) { d.setMonth(d.getMonth() - (pts - 1 - i)); return d.toLocaleDateString('en-US', { month: 'short' }); }
+      d.setDate(d.getDate() - (pts - 1 - i) * (days === 90 ? 7 : 1));
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+    const scale = days === 365 ? 30 : days === 90 ? 7 : 1;
+    const sessions = labels.map((_, i) => Math.round((3800 + 900 * Math.sin(i / 2.2) + i * 18 + noise() * 700) * scale));
+    return { labels, sessions, visitors: sessions.map(v => Math.round(v * (0.64 + noise() * 0.06))) };
+  }
+  const sum = a => a.reduce((t, v) => t + v, 0);
+
+  function renderKpis(days, t) {
+    const f = days / 30;
+    const kpis = [
+      ['Sessions', fmt.compact(sum(t.sessions)), 9.2, true, 'cursor-click', 'primary'],
+      ['Unique visitors', fmt.compact(sum(t.visitors)), 6.8, true, 'users', 'success'],
+      ['Bounce rate', `${(38.2 + (f > 1 ? 1.1 : -0.4)).toFixed(1)}%`, -2.1, false, 'arrow-u-up-left', 'warning'],
+      ['Avg. session', f > 1 ? '4m 05s' : '4m 12s', 3.4, true, 'timer', 'violet'],
+    ];
+    document.getElementById('kpis').innerHTML = kpis.map(([label, value, d, upGood, icon, tone]) => `
+      <article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-${tone}"><i class="ph ph-${icon}"></i></span>
+        <div class="grow"><h2 class="stat-label">${label}</h2><p class="stat-value">${value}</p></div>${delta(d, upGood)}</article>`).join('');
+  }
+
+  let t = trend(30);
+  renderKpis(30, t);
+  const trendChart = chart('#trend-chart', {
+    chart: { type: 'area', height: 320 },
+    series: [{ name: 'Sessions', data: t.sessions }, { name: 'Unique visitors', data: t.visitors }],
+    colors: ['--chart-1', '--chart-3'],
+    fill: areaFill,
+    xaxis: { categories: t.labels, tickAmount: 8, tickPlacement: 'on', labels: { rotate: 0 } },
+    responsive: [{ breakpoint: 640, options: { xaxis: { tickAmount: 4 } } }],
+    yaxis: { labels: { formatter: v => fmt.compact(v) } },
+    tooltip: { y: { formatter: v => fmt.num(v) } },
+  });
+  document.getElementById('range').addEventListener('segment', e => {
+    const days = +e.detail;
+    t = trend(days);
+    renderKpis(days, t);
+    document.getElementById('trend-sub').textContent = `Sessions and unique visitors · ${days === 365 ? 'last 12 months' : `last ${days} days`}`;
+    trendChart.update({ series: [{ name: 'Sessions', data: t.sessions }, { name: 'Unique visitors', data: t.visitors }], xaxis: { categories: t.labels } });
+  });
+
+  // Sources
+  const sources = [['Organic search', 38.4, '--chart-1'], ['Direct', 24.1, '--chart-2'], ['Social', 16.3, '--chart-3'], ['Referral', 11.9, '--chart-4'], ['Email', 9.3, '--chart-5']];
+  chart('#source-chart', {
+    chart: { type: 'donut', height: 230 },
+    series: sources.map(x => x[1]), labels: sources.map(x => x[0]), colors: sources.map(x => x[2]),
+    stroke: { width: 2, colors: ['--surface'] }, legend: { show: false },
+    plotOptions: { pie: { donut: { size: '72%', labels: { show: true, name: { color: '--text-3', fontSize: '13px', offsetY: 22 }, value: { color: '--text', fontSize: '22px', fontWeight: 700, offsetY: -14, formatter: v => `${(+v).toFixed(1)}%` }, total: { show: true, label: 'Sessions', color: '--text-3', formatter: () => '128.4K' } } } } },
+    tooltip: { y: { formatter: v => `${v}%` } },
+    table: { label: 'Source', value: 'Share', format: v => `${v}%` },
+  });
+  document.getElementById('source-list').innerHTML = sources.map(([n, v, c]) => `<li class="list-item"><span class="dot" style="--c:var(${c})"></span><span class="list-body text-sm fw-600">${n}</span><span class="list-end">${v}%</span></li>`).join('');
+
+  // Funnel — one hue, ordered stages, value + conversion at the bar tip
+  const funnel = [['Visitors', 86120], ['Product views', 52480], ['Added to cart', 14960], ['Checkout', 6730], ['Purchased', 3380]];
+  chart('#funnel-chart', {
+    chart: { type: 'bar', height: 300, stacked: true }, // stacked (single series, same look) skips ApexCharts 4's label clamp that pins labels of short bars onto the bar
+    series: [{ name: 'Users', data: funnel.map(f => f[1]) }],
+    colors: ['--chart-1'],
+    plotOptions: { bar: { horizontal: true, barHeight: '52%', dataLabels: { position: 'top', hideOverflowingLabels: false } } },
+    dataLabels: { enabled: true, textAnchor: 'start', offsetX: 12, formatter: (v, o) => `${fmt.compact(v)} · ${(v / funnel[0][1] * 100).toFixed(1)}%`, style: { colors: ['--text-2'], fontSize: '12px', fontWeight: 600 } },
+    xaxis: { categories: funnel.map(f => f[0]), min: 0, max: App.niceMax(funnel[0][1] * 1.6), tickAmount: 4, labels: { formatter: v => fmt.compact(v) } }, // headroom keeps tip labels off the bars
+    grid: { xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } } },
+    tooltip: { y: { formatter: v => `${fmt.num(v)} users` } },
+  });
+
+  // Heatmap — sequential single hue
+  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const SLOTS = ['12am', '2am', '4am', '6am', '8am', '10am', '12pm', '2pm', '4pm', '6pm', '8pm', '10pm'];
+  chart('#heatmap-chart', {
+    chart: { type: 'heatmap', height: 300 },
+    series: DAYS.slice().reverse().map((d, di) => ({ name: d, data: SLOTS.map((x, i) => {
+      const weekend = di < 2, peak = Math.exp(-((i - (weekend ? 7 : 5.5)) ** 2) / 6);
+      return { x, y: Math.round(40 + peak * (weekend ? 420 : 680) + noise() * 80) };
+    }) })),
+    colors: ['--chart-1'],
+    plotOptions: { heatmap: { radius: 6, enableShades: true, shadeIntensity: 0.85 } },
+    stroke: { width: 3, colors: ['--surface'] },
+    dataLabels: { enabled: false },
+    xaxis: { labels: { rotate: 0, hideOverlappingLabels: true } },
+    legend: { show: false },
+    tooltip: { y: { formatter: v => `${fmt.num(v)} sessions` } },
+    table: { label: 'Day' },
+  });
+
+  // Top pages
+  const pages = [['/products/aurora-wireless-headphones', 18420, '3m 42s', 28.4, 12.1], ['/collections/new-arrivals', 14210, '2m 58s', 34.9, 8.4], ['/checkout', 9870, '4m 10s', 12.6, 3.2],
+    ['/products/nimbus-book-air-14', 8430, '3m 05s', 31.2, -4.6], ['/blog/soft-ui-trends', 6120, '5m 21s', 46.8, 22.7], ['/pricing', 5480, '2m 12s', 38.1, -1.8]];
+  document.getElementById('pages').innerHTML = pages.map(([p, v, time, b, d]) => `
+    <tr><td class="cell-main" data-label="Page"><span class="fw-600 truncate" style="display:block;max-width:320px">${p}</span></td>
+    <td class="num" data-label="Views">${fmt.num(v)}</td><td class="num" data-label="Avg. time">${time}</td><td class="num" data-label="Bounce">${b}%</td><td data-label="Trend">${delta(d)}</td></tr>`).join('');
+
+  // Countries
+  const countries = [['US', 'United States', 32.4], ['GB', 'United Kingdom', 14.1], ['DE', 'Germany', 11.2], ['SG', 'Singapore', 9.1], ['CA', 'Canada', 8.3], ['AU', 'Australia', 6.9]];
+  document.getElementById('countries').innerHTML = countries.map(([code, name, pct]) => `
+    <div class="flex items-center gap-3"><span class="badge tone-neutral" style="width:40px;justify-content:center">${code}</span>
+    <div class="progress-row grow"><div class="label-row"><span class="fw-600">${name}</span><span>${pct}%</span></div><progress class="progress" value="${pct}" max="40" aria-label="${name}"></progress></div></div>`).join('');
+
+  // Cohorts
+  const weeks = 6;
+  document.getElementById('cohort-head').innerHTML = `<tr><th scope="col">Cohort</th><th scope="col" class="num">Customers</th>${Array.from({ length: weeks }, (_, i) => `<th scope="col" class="center">Week ${i + 1}</th>`).join('')}</tr>`;
+  document.getElementById('cohort-body').innerHTML = Array.from({ length: 6 }, (_, r) => {
+    const d = new Date(); d.setDate(d.getDate() - (6 - r) * 7);
+    const cells = Array.from({ length: weeks }, (_, c) => {
+      if (c >= weeks - r) return '<td class="text-3">—</td>';
+      const v = Math.round(100 * Math.pow(0.72 - r * 0.012, c + 0.4) + noise() * 4);
+      return `<td style="background:color-mix(in srgb, var(--chart-1) ${Math.round(6 + v * 0.54)}%, var(--surface))">${v}%</td>`;
+    }).join('');
+    return `<tr><th scope="row">${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</th><td class="num">${fmt.num(380 + r * 41)}</td>${cells}</tr>`;
+  }).join('');
+</script>
+</body>
+</html>

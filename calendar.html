@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calendar · Nimbus Admin</title>
+  <meta name="description" content="Calendar — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Workspace</span><span aria-current="page">Calendar</span></nav>
+          <h1 class="page-title">Calendar</h1>
+          <p class="page-subtitle">Meetings, deadlines and team events in one place.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" type="button" id="new-event"><i class="ph ph-calendar-plus"></i>New event</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <section class="card xl-9" aria-label="Month calendar" style="overflow:hidden">
+          <div class="cal-toolbar">
+            <div class="flex items-center gap-1">
+              <button class="btn btn-ghost btn-icon" type="button" id="prev" aria-label="Previous month"><i class="ph ph-caret-left"></i></button>
+              <button class="btn btn-ghost btn-icon" type="button" id="next" aria-label="Next month"><i class="ph ph-caret-right"></i></button>
+            </div>
+            <h2 class="cal-month" id="month" aria-live="polite"></h2>
+            <button class="btn btn-secondary btn-sm" type="button" id="today-btn">Today</button>
+            <div class="segmented ml-auto" data-segmented id="view" aria-label="Calendar view">
+              <button type="button" aria-pressed="true" data-value="month"><i class="ph ph-calendar-blank"></i>Month</button>
+              <button type="button" aria-pressed="false" data-value="list"><i class="ph ph-list-bullets"></i>List</button>
+            </div>
+          </div>
+          <div class="cal-grid" id="grid"></div>
+          <div class="card-body" id="list" hidden><ul class="agenda" id="list-items"></ul></div>
+        </section>
+
+        <aside class="xl-3 stack" aria-label="Calendar details">
+          <section class="card">
+            <div class="card-header"><div><h2 class="card-title" id="day-title">Today</h2><p class="card-subtitle" id="day-sub"></p></div>
+              <button class="btn btn-soft btn-icon btn-sm" type="button" id="add-on-day" aria-label="Add event on selected day"><i class="ph ph-plus"></i></button></div>
+            <div class="card-body"><ul class="agenda" id="day-events"></ul></div>
+          </section>
+          <section class="card">
+            <div class="card-header"><h2 class="card-title">Calendars</h2></div>
+            <div class="card-body stack-sm" id="cats"></div>
+          </section>
+        </aside>
+      </div>
+
+      <dialog class="modal" id="event-modal" aria-labelledby="ev-title">
+        <form class="modal-form" data-validate novalidate id="event-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="ev-title">New event</h2><p class="modal-desc" id="ev-desc">Invitations are sent to attendees automatically.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body form-grid cols-2">
+            <input type="hidden" name="id">
+            <div class="field span-all"><label class="label" for="e-title">Title <span class="req">*</span></label><input class="input" id="e-title" name="title" required placeholder="e.g. Quarterly business review"></div>
+            <div class="field"><label class="label" for="e-date">Date</label><input class="input" id="e-date" name="date" type="date" required></div>
+            <div class="field"><label class="label" for="e-start">Start time</label><input class="input" id="e-start" name="start" type="time" required value="09:00"></div>
+            <div class="field"><label class="label" for="e-dur">Duration</label><select class="select" id="e-dur" name="duration"><option value="30">30 minutes</option><option value="60" selected>1 hour</option><option value="90">1.5 hours</option><option value="0">All day / deadline</option></select></div>
+            <div class="field"><label class="label" for="e-cat">Calendar</label><select class="select" id="e-cat" name="category"></select></div>
+            <div class="field span-all"><label class="label" for="e-loc">Location</label><input class="input" id="e-loc" name="location" placeholder="Room, address or video link"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-soft-danger" type="button" id="delete-event" style="margin-right:auto"><i class="ph ph-trash"></i>Delete</button>
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Save event</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { esc, toast, openModal, $ } = App;
+  const events = DB.events;
+  const CAT = { meeting: ['Meetings', 'primary', '--chart-1'], call: ['Calls', 'success', '--chart-3'], deadline: ['Deadlines', 'danger', '--chart-8'], event: ['Events', 'violet', '--chart-7'], training: ['Training', 'warning', '--chart-4'], personal: ['Personal', 'pink', '--chart-5'] };
+  const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const todayKey = DB.ymd(new Date());
+  const active = new Set(Object.keys(CAT));
+  let cursor = new Date(); cursor.setDate(1);
+  let selected = todayKey;
+  const parse = k => new Date(k + 'T00:00');
+  const timeLabel = e => e.duration ? `${e.start} · ${e.duration} min` : 'All day';
+  const shown = key => events.filter(e => e.date === key && active.has(e.category));
+  const item = e => `<li><span class="bar" style="--c:var(${CAT[e.category][2]})"></span><div class="grow"><button class="link-btn fw-700 text-sm" type="button" data-event="${e.id}">${esc(e.title)}</button><small style="display:block">${timeLabel(e)}${e.location ? ' · ' + esc(e.location) : ''}</small></div></li>`;
+
+  function renderMonth() {
+    const y = cursor.getFullYear(), m = cursor.getMonth();
+    $('#month').textContent = cursor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const start = new Date(y, m, 1 - (new Date(y, m, 1).getDay() + 6) % 7); // Monday-first grid
+    let html = DOW.map(d => `<div class="cal-dow" aria-hidden="true">${d}</div>`).join('');
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start); d.setDate(start.getDate() + i);
+      const key = DB.ymd(d), evs = shown(key);
+      html += `<button class="cal-day${d.getMonth() !== m ? ' is-muted' : ''}${key === todayKey ? ' is-today' : ''}${key === selected ? ' is-selected' : ''}" type="button" data-date="${key}" aria-pressed="${key === selected}"
+        aria-label="${d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}${evs.length ? `, ${evs.length} event${evs.length > 1 ? 's' : ''}` : ''}">
+        <span class="cal-date">${d.getDate()}</span>
+        ${evs.slice(0, 3).map(e => `<span class="cal-event tone-${CAT[e.category][1]}" data-event="${e.id}">${e.duration ? e.start + ' ' : ''}${esc(e.title)}</span>`).join('')}
+        ${evs.length > 3 ? `<span class="cal-more">+${evs.length - 3} more</span>` : ''}
+        <span class="cal-dots" aria-hidden="true">${evs.slice(0, 4).map(e => `<span style="--c:var(${CAT[e.category][2]})"></span>`).join('')}</span>
+      </button>`;
+    }
+    $('#grid').innerHTML = html;
+    const monthKey = `${y}-${String(m + 1).padStart(2, '0')}`;
+    const inMonth = events.filter(e => e.date.startsWith(monthKey) && active.has(e.category));
+    const days = [...new Set(inMonth.map(e => e.date))];
+    $('#list-items').innerHTML = days.map(k => `<li style="display:block;background:none;border:0;padding:0"><p class="text-xs fw-700 text-3 mb-2">${parse(k).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase()}</p><ul class="agenda">${inMonth.filter(e => e.date === k).map(item).join('')}</ul></li>`).join('')
+      || '<li class="empty" style="background:none;border:0"><span class="icon-tile tone-neutral"><i class="ph ph-calendar-blank"></i></span><h3>Nothing scheduled</h3></li>';
+  }
+  function renderDay() {
+    const d = parse(selected);
+    $('#day-title').textContent = selected === todayKey ? 'Today' : d.toLocaleDateString('en-US', { weekday: 'long' });
+    $('#day-sub').textContent = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    $('#day-events').innerHTML = shown(selected).map(item).join('') || '<li style="background:none;border:0;padding:0" class="text-sm text-3">No events — enjoy the free time.</li>';
+  }
+  function renderCats() {
+    $('#cats').innerHTML = Object.entries(CAT).map(([k, [name, , c]]) => `<label class="check"><input type="checkbox" value="${k}" ${active.has(k) ? 'checked' : ''} style="accent-color:var(${c})"><span class="dot" style="--c:var(${c})"></span>${name}<span class="ml-auto text-xs text-3">${events.filter(e => e.category === k).length}</span></label>`).join('');
+  }
+  const render = () => { renderMonth(); renderDay(); };
+  renderCats(); render();
+
+  $('#prev').addEventListener('click', () => { cursor.setMonth(cursor.getMonth() - 1); renderMonth(); });
+  $('#next').addEventListener('click', () => { cursor.setMonth(cursor.getMonth() + 1); renderMonth(); });
+  $('#today-btn').addEventListener('click', () => { cursor = new Date(); cursor.setDate(1); selected = todayKey; render(); });
+  $('#view').addEventListener('segment', e => { $('#grid').hidden = e.detail !== 'month'; $('#list').hidden = e.detail !== 'list'; });
+  $('#cats').addEventListener('change', e => { e.target.checked ? active.add(e.target.value) : active.delete(e.target.value); render(); });
+
+  // Event modal
+  const f = $('#event-form');
+  $('#e-cat').innerHTML = Object.entries(CAT).map(([k, [n]]) => `<option value="${k}">${n}</option>`).join('');
+  function openEvent(ev, date) {
+    f.reset();
+    f.elements.id.value = ev?.id || '';
+    $('#ev-title').textContent = ev ? ev.title : 'New event';
+    $('#ev-desc').textContent = ev ? `${parse(ev.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} · ${timeLabel(ev)}` : 'Invitations are sent to attendees automatically.';
+    $('#delete-event').hidden = !ev;
+    f.elements.title.value = ev?.title || '';
+    f.elements.date.value = ev?.date || date || selected;
+    f.elements.start.value = ev?.start || '09:00';
+    f.elements.duration.value = String(ev?.duration ?? 60);
+    f.elements.category.value = ev?.category || 'meeting';
+    f.elements.location.value = ev?.location || '';
+    openModal('#event-modal');
+  }
+  document.addEventListener('click', e => {
+    const ev = e.target.closest('[data-event]');
+    if (ev) return openEvent(events.find(x => x.id === ev.dataset.event));
+    const day = e.target.closest('[data-date]');
+    if (day) {
+      selected = day.dataset.date; const d = parse(selected);
+      if (d.getMonth() !== cursor.getMonth()) cursor = new Date(d.getFullYear(), d.getMonth(), 1);
+      render();
+      if (e.detail === 0) $(`#grid [data-date="${selected}"]`)?.focus(); // keep keyboard position after re-render
+    }
+  });
+  $('#grid').addEventListener('dblclick', e => { const day = e.target.closest('[data-date]'); if (day) openEvent(null, day.dataset.date); });
+  $('#new-event').addEventListener('click', () => openEvent());
+  $('#add-on-day').addEventListener('click', () => openEvent(null, selected));
+  f.addEventListener('valid', e => {
+    const d = e.detail, fields = { title: d.title, date: d.date, start: d.start, duration: +d.duration, category: d.category, location: d.location };
+    const existing = events.find(x => x.id === d.id);
+    if (existing) Object.assign(existing, fields); else events.push({ id: `EV-${Date.now()}`, ...fields });
+    events.sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
+    selected = d.date; cursor = new Date(parse(d.date).getFullYear(), parse(d.date).getMonth(), 1);
+    renderCats(); render(); toast(existing ? 'Event updated' : 'Event added to your calendar', { title: d.title });
+  });
+  $('#delete-event').addEventListener('click', () => {
+    const i = events.findIndex(x => x.id === f.elements.id.value);
+    const [ev] = events.splice(i, 1);
+    $('#event-modal').close(); renderCats(); render(); toast('Event deleted', { title: ev.title });
+  });
+</script>
+</body>
+</html>

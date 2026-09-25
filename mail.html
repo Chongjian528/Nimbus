@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mail · Nimbus Admin</title>
+  <meta name="description" content="Mail — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Workspace</span><span aria-current="page">Mail</span></nav>
+          <h1 class="page-title">Mail</h1>
+          <p class="page-subtitle">Shared inbox for sales, finance and supplier conversations.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" type="button" id="compose"><i class="ph ph-pencil-simple-line"></i>Compose</button>
+        </div>
+      </div>
+
+      <div class="mail">
+        <nav class="card" aria-label="Mail folders" style="padding:10px;align-self:start">
+          <div class="mail-folders" id="folders"></div>
+          <div class="mt-4" id="labels-wrap">
+            <p class="nav-label" style="padding:0 14px">Labels</p>
+            <div class="mail-folders" id="labels"></div>
+          </div>
+        </nav>
+
+        <section class="card split" id="mailbox" aria-label="Messages">
+          <div class="split-side">
+            <div class="split-search flex items-center gap-2">
+              <div class="input-icon grow"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" id="q" placeholder="Search mail…" aria-label="Search mail"></div>
+              <button class="btn btn-ghost btn-icon" type="button" id="refresh" aria-label="Refresh"><i class="ph ph-arrows-clockwise"></i></button>
+            </div>
+            <ul class="split-list" id="list" aria-label="Message list"></ul>
+          </div>
+          <div class="split-main" id="reader-wrap">
+            <div class="thread-head">
+              <button class="btn btn-ghost btn-icon back-btn" type="button" id="back" aria-label="Back to messages"><i class="ph ph-arrow-left"></i></button>
+              <span class="grow"></span>
+              <button class="btn btn-ghost btn-icon" type="button" id="archive" data-tooltip="Archive" aria-label="Archive"><i class="ph ph-archive"></i></button>
+              <button class="btn btn-ghost btn-icon" type="button" id="unread" data-tooltip="Mark unread" aria-label="Mark as unread"><i class="ph ph-envelope-simple"></i></button>
+              <button class="btn btn-ghost btn-icon" type="button" id="trash" data-tooltip="Delete" aria-label="Delete"><i class="ph ph-trash"></i></button>
+            </div>
+            <article class="mail-reader" id="reader" aria-live="polite"></article>
+          </div>
+        </section>
+      </div>
+
+      <dialog class="modal modal-lg" id="compose-modal" aria-labelledby="compose-title">
+        <form class="modal-form" data-validate novalidate id="compose-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="compose-title">New message</h2></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body stack-sm">
+            <div class="field"><label class="label" for="m-to">To</label><input class="input" id="m-to" name="to" type="email" required multiple placeholder="name@company.com" list="contacts"><datalist id="contacts"></datalist></div>
+            <div class="field"><label class="label" for="m-subject">Subject</label><input class="input" id="m-subject" name="subject" required></div>
+            <div class="field"><label class="label" for="m-body">Message</label><textarea class="textarea" id="m-body" name="body" required style="min-height:200px"></textarea></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost" type="button" data-modal-close style="margin-right:auto"><i class="ph ph-trash"></i>Discard</button>
+            <button class="btn btn-primary" type="submit"><i class="ph ph-paper-plane-tilt"></i>Send</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { fmt, esc, avatar, toast, openModal, $ } = App;
+  const mails = DB.emails;
+  const FOLDERS = [['inbox', 'Inbox', 'tray'], ['starred', 'Starred', 'star'], ['sent', 'Sent', 'paper-plane-tilt'], ['drafts', 'Drafts', 'file-dashed'], ['spam', 'Spam', 'warning-octagon'], ['trash', 'Trash', 'trash']];
+  const LABELS = [['Work', '--chart-1'], ['Finance', '--chart-3'], ['Personal', '--chart-5'], ['Updates', '--chart-4']];
+  let folder = 'inbox', label = null, current = null;
+
+  const inFolder = m => folder === 'starred' ? m.starred && m.folder !== 'trash' : m.folder === folder;
+  const shortDate = d => { const x = new Date(d); return Date.now() - x < 864e5 ? fmt.time(d) : fmt.day(d); };
+
+  function renderFolders() {
+    $('#folders').innerHTML = FOLDERS.map(([id, name, icon]) => {
+      const n = id === 'inbox' ? mails.filter(m => m.folder === 'inbox' && m.unread).length : id === 'drafts' ? mails.filter(m => m.folder === 'drafts').length : 0;
+      return `<button class="mail-folder${folder === id && !label ? ' is-active' : ''}" type="button" data-folder="${id}" aria-current="${folder === id && !label}"><i class="ph ph-${icon}"></i>${name}${n ? `<span class="count badge tone-primary">${n}</span>` : ''}</button>`;
+    }).join('');
+    $('#labels').innerHTML = LABELS.map(([n, c]) => `<button class="mail-folder${label === n ? ' is-active' : ''}" type="button" data-label="${n}"><span class="dot" style="--c:var(${c})"></span>${n}</button>`).join('');
+  }
+  function renderList() {
+    const q = $('#q').value.trim().toLowerCase();
+    const items = mails.filter(m => (label ? m.label === label && m.folder !== 'trash' && m.folder !== 'spam' : inFolder(m)) && (!q || (m.from + m.subject + m.snippet).toLowerCase().includes(q)))
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+    $('#list').innerHTML = items.map(m => `<li><div class="mail-row${m.unread ? ' is-unread' : ''}${current === m ? ' is-active' : ''}" data-id="${m.id}">
+      ${avatar(m.folder === 'sent' || m.folder === 'drafts' ? (m.to || m.from) : m.from, 'avatar-sm')}
+      <div class="grow" style="min-width:0">
+        <div class="flex justify-between gap-2"><button class="link-btn from truncate" type="button" data-open="${m.id}">${esc(m.folder === 'sent' || m.folder === 'drafts' ? 'To: ' + (m.to || '') : m.from)}</button><time>${shortDate(m.date)}</time></div>
+        <p class="subject">${esc(m.subject)}</p><p class="snippet">${esc(m.snippet)}</p>
+        <div class="flex gap-2 mt-1"><span class="tag tone-${{ Work: 'primary', Finance: 'success', Personal: 'pink', Updates: 'warning' }[m.label]}">${m.label}</span>${m.attachments.length ? `<span class="tag tone-neutral"><i class="ph ph-paperclip"></i>&nbsp;${m.attachments.length}</span>` : ''}</div>
+      </div>
+      <button class="star-btn" type="button" data-star="${m.id}" aria-pressed="${m.starred}" aria-label="${m.starred ? 'Unstar' : 'Star'} message"><i class="ph${m.starred ? '-fill' : ''} ph-star"></i></button>
+    </div></li>`).join('') || `<li class="empty"><span class="icon-tile tone-neutral"><i class="ph ph-tray"></i></span><h3>Nothing here</h3><p>This folder is empty.</p></li>`;
+  }
+  function renderReader() {
+    const m = current;
+    $('#reader-wrap').querySelectorAll('.thread-head .btn:not(.back-btn)').forEach(b => { b.disabled = !m; });
+    if (!m) { $('#reader').innerHTML = `<div class="empty" style="height:100%;align-content:center"><span class="icon-tile tone-primary"><i class="ph ph-envelope-open"></i></span><h3>Select a message</h3><p>Choose an email from the list to read it here.</p></div>`; return; }
+    $('#reader').innerHTML = `
+      <div class="flex items-start justify-between gap-3 wrap"><h2>${esc(m.subject)}</h2><span class="tag tone-neutral">${m.label}</span></div>
+      <div class="flex items-center gap-3 mt-4">${avatar(m.from, 'avatar')}<div class="grow" style="min-width:0"><p class="fw-700">${esc(m.from)}</p><p class="text-xs text-3 truncate">${esc(m.email)}${m.to ? ' → ' + esc(m.to) : ' → me'}</p></div><time class="text-xs text-3">${fmt.date(m.date)}, ${fmt.time(m.date)}</time></div>
+      <div class="mail-content mt-6">${m.body.split('\n\n').map(p => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`).join('')}</div>
+      ${m.attachments.length ? `<div class="flex wrap gap-2 mt-6">${m.attachments.map(a => `<a class="attachment" href="#" data-file="${esc(a)}"><i class="ph ph-file-${a.endsWith('.pdf') ? 'pdf' : a.endsWith('.csv') ? 'csv' : 'image'}"></i>${esc(a)}<i class="ph ph-download-simple"></i></a>`).join('')}</div>` : ''}
+      <form class="stack-sm mt-6" id="reply-form" style="padding-top:20px;border-top:1px solid var(--border)">
+        <label class="label" for="reply">Reply to ${esc(m.from.split(' ')[0])}</label>
+        <textarea class="textarea" id="reply" placeholder="Write your reply…" required></textarea>
+        <div class="flex justify-between gap-2"><button class="btn btn-ghost btn-sm" type="button" data-file="template"><i class="ph ph-magic-wand"></i>Use template</button><button class="btn btn-primary" type="submit"><i class="ph ph-arrow-bend-up-left"></i>Send reply</button></div>
+      </form>`;
+  }
+  const render = () => { renderFolders(); renderList(); renderReader(); };
+
+  function open(id) {
+    current = mails.find(m => m.id === id);
+    current.unread = false;
+    render();
+    $('#mailbox').classList.add('show-main');
+    $('#reader').scrollTop = 0;
+  }
+  function move(to, msg) { current.folder = to; toast(msg, { type: 'info' }); current = null; $('#mailbox').classList.remove('show-main'); render(); }
+
+  document.querySelector('.mail').addEventListener('click', e => {
+    const f = e.target.closest('[data-folder]'), l = e.target.closest('[data-label]'), s = e.target.closest('[data-star]');
+    if (f) { folder = f.dataset.folder; label = null; current = null; $('#mailbox').classList.remove('show-main'); render(); return; }
+    if (l) { label = label === l.dataset.label ? null : l.dataset.label; current = null; render(); return; }
+    if (s) { const m = mails.find(x => x.id === s.dataset.star); m.starred = !m.starred; renderList(); return; }
+    if (e.target.closest('[data-file]')) { e.preventDefault(); toast(e.target.closest('[data-file]').dataset.file === 'template' ? 'Template inserted' : 'Download started', { type: 'info' }); if (e.target.closest('[data-file="template"]')) $('#reply').value = 'Hi,\n\nThanks for reaching out — I’ll get back to you with details shortly.\n\nBest,\nOlivia'; return; }
+    const row = e.target.closest('.mail-row');
+    if (row) open(row.dataset.id);
+  });
+  $('#q').addEventListener('input', renderList);
+  $('#refresh').addEventListener('click', () => toast('You’re all caught up', { type: 'info' }));
+  $('#back').addEventListener('click', () => { $('#mailbox').classList.remove('show-main'); $(`[data-open="${current?.id}"]`)?.focus(); });
+  $('#archive').addEventListener('click', () => move('archive', 'Conversation archived'));
+  $('#trash').addEventListener('click', () => move('trash', 'Moved to trash'));
+  $('#unread').addEventListener('click', () => { current.unread = true; current = null; $('#mailbox').classList.remove('show-main'); render(); toast('Marked as unread', { type: 'info' }); });
+  $('#reader').addEventListener('submit', e => {
+    e.preventDefault();
+    const text = $('#reply').value.trim();
+    if (!text) return $('#reply').focus();
+    mails.push({ id: `ML-R${Date.now()}`, from: App.me.name, email: App.me.email, to: current.from, subject: `Re: ${current.subject}`, label: current.label, unread: false, starred: false, attachments: [], folder: 'sent', body: text, snippet: text.slice(0, 120), date: new Date().toISOString() });
+    $('#reply').value = '';
+    toast(`Reply sent to ${current.from}`);
+  });
+
+  $('#contacts').innerHTML = [...DB.customers.slice(0, 20), ...DB.employees].map(p => `<option value="${esc(p.email)}">${esc(p.name)}</option>`).join('');
+  $('#compose').addEventListener('click', () => openModal('#compose-modal'));
+  $('#compose-form').addEventListener('valid', e => {
+    const d = e.detail;
+    mails.push({ id: `ML-C${Date.now()}`, from: App.me.name, email: App.me.email, to: d.to, subject: d.subject, label: 'Work', unread: false, starred: false, attachments: [], folder: 'sent', body: d.body, snippet: d.body.slice(0, 120), date: new Date().toISOString() });
+    render(); toast(`Message sent to ${d.to}`);
+  });
+
+  // Open the latest inbox message on wide screens only; phones start with the list
+  if (matchMedia('(min-width: 900px)').matches) current = mails.find(m => m.folder === 'inbox');
+  if (current) current.unread = false;
+  render();
+</script>
+</body>
+</html>

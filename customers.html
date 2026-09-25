@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customers · Nimbus Admin</title>
+  <meta name="description" content="Customers — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>CRM</span><span aria-current="page">Customers</span></nav>
+          <h1 class="page-title">Customers</h1>
+          <p class="page-subtitle">Manage accounts, segments and relationship owners.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" type="button" data-modal="#import-modal"><i class="ph ph-upload-simple"></i>Import</button>
+          <button class="btn btn-primary" type="button" id="add-customer"><i class="ph ph-plus"></i>Add customer</button>
+        </div>
+      </div>
+
+      <section class="row" aria-label="Customer summary">
+        <article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-primary"><i class="ph ph-users-three"></i></span><div class="grow"><h2 class="stat-label">Total customers</h2><p class="stat-value">1,284</p></div><span class="delta is-good"><i class="ph ph-trend-up"></i><span class="sr-only">Up </span>4.2%</span></article>
+        <article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-success"><i class="ph ph-user-check"></i></span><div class="grow"><h2 class="stat-label">Active</h2><p class="stat-value">1,102</p></div><span class="delta is-good"><i class="ph ph-trend-up"></i><span class="sr-only">Up </span>2.8%</span></article>
+        <article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-info"><i class="ph ph-user-plus"></i></span><div class="grow"><h2 class="stat-label">New this month</h2><p class="stat-value">86</p></div><span class="delta is-good"><i class="ph ph-trend-up"></i><span class="sr-only">Up </span>11.0%</span></article>
+        <article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-danger"><i class="ph ph-warning-circle"></i></span><div class="grow"><h2 class="stat-label">Churn risk</h2><p class="stat-value">41</p></div><span class="delta is-good"><i class="ph ph-trend-down"></i><span class="sr-only">Down </span>6.5%</span></article>
+      </section>
+
+      <section class="card" id="customers" aria-label="Customer list">
+        <div class="table-toolbar">
+          <div class="input-icon"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" placeholder="Search name, email, company…" aria-label="Search customers" data-table-search></div>
+          <select class="select" data-table-filter="segment" aria-label="Filter by segment">
+            <option value="all">All segments</option><option>Enterprise</option><option>Mid-Market</option><option>SMB</option><option>Startup</option>
+          </select>
+          <select class="select" data-table-filter="status" aria-label="Filter by status">
+            <option value="all">All statuses</option><option>Active</option><option>Inactive</option><option>Churn risk</option>
+          </select>
+          <button class="btn btn-ghost ml-auto" type="button" data-action="print"><i class="ph ph-download-simple"></i>Export</button>
+        </div>
+        <div class="bulk-bar" data-table-bulk hidden>
+          <span><span data-bulk-count>0</span> selected</span><span class="spacer"></span>
+          <button class="btn btn-sm btn-secondary" type="button" id="bulk-email"><i class="ph ph-envelope-simple"></i>Email</button>
+          <button class="btn btn-sm btn-soft-danger" type="button" id="bulk-delete"><i class="ph ph-trash"></i>Delete</button>
+        </div>
+        <div class="table-wrap"><table class="table table-cards"></table></div>
+        <div class="table-footer"><span data-table-info></span><nav class="pagination" aria-label="Pagination" data-table-pager></nav></div>
+      </section>
+
+      <dialog class="modal modal-lg" id="customer-modal" aria-labelledby="customer-modal-title">
+        <form class="modal-form" data-validate novalidate id="customer-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="customer-modal-title">Add customer</h2><p class="modal-desc">Create a new account and assign an owner.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="id">
+            <div class="form-grid cols-2">
+              <div class="field"><label class="label" for="c-name">Full name <span class="req">*</span></label><input class="input" id="c-name" name="name" required minlength="2" autocomplete="name" placeholder="e.g. Emma Rodriguez"></div>
+              <div class="field"><label class="label" for="c-email">Email <span class="req">*</span></label><input class="input" id="c-email" name="email" type="email" required autocomplete="email" placeholder="name@company.com"></div>
+              <div class="field"><label class="label" for="c-company">Company <span class="req">*</span></label><input class="input" id="c-company" name="company" required autocomplete="organization" placeholder="Company name"></div>
+              <div class="field"><label class="label" for="c-phone">Phone</label><input class="input" id="c-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+1 (555) 000-0000"></div>
+              <div class="field"><label class="label" for="c-segment">Segment</label><select class="select" id="c-segment" name="segment"><option>SMB</option><option>Mid-Market</option><option>Enterprise</option><option>Startup</option></select></div>
+              <div class="field"><label class="label" for="c-status">Status</label><select class="select" id="c-status" name="status"><option>Active</option><option>Inactive</option><option>Churn risk</option></select></div>
+              <div class="field"><label class="label" for="c-city">City</label><input class="input" id="c-city" name="city" placeholder="City, Country"></div>
+              <div class="field"><label class="label" for="c-owner">Account owner</label><select class="select" id="c-owner" name="owner"></select></div>
+              <div class="field span-all"><label class="label" for="c-notes">Notes</label><textarea class="textarea" id="c-notes" name="notes" placeholder="Anything the team should know…"></textarea></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit" id="customer-submit">Save customer</button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog class="modal" id="import-modal" aria-labelledby="import-title">
+        <form class="modal-form" data-validate novalidate data-success="Import started — we’ll email you when it finishes.">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="import-title">Import customers</h2><p class="modal-desc">Upload a CSV with name, email and company columns.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body stack-sm">
+            <div class="field">
+              <label class="dropzone" for="import-file">
+                <span class="icon-tile tone-primary"><i class="ph ph-file-csv"></i></span>
+                <strong>Drop your CSV here or click to browse</strong>
+                <span class="hint">Up to 10 MB · UTF-8 encoded</span>
+                <input id="import-file" name="file" type="file" accept=".csv,text/csv" required data-error="Choose a CSV file to import.">
+              </label>
+            </div>
+            <label class="check"><input type="checkbox" name="dedupe" checked>Skip rows with an existing email address</label>
+            <a class="card-link" href="#" onclick="event.preventDefault();App.toast('Template downloaded', { type: 'info' })"><i class="ph ph-download-simple"></i>Download CSV template</a>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Start import</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { fmt, esc, avatar, badge, rowMenu, table, confirm, toast, openModal, $ } = App;
+  const segTone = { Enterprise: 'violet', 'Mid-Market': 'info', SMB: 'primary', Startup: 'pink' };
+
+  const list = table('#customers', {
+    data: [...DB.customers],
+    caption: 'Customers',
+    selectable: true,
+    search: ['name', 'email', 'company', 'city', 'id'],
+    sort: ['name', 'asc'],
+    columns: [
+      { key: 'name', label: 'Customer', sortable: true, cls: 'cell-main', render: c => `<div class="cell-user">${avatar(c.name)}<div><a href="customer-detail.html?id=${c.id}"><strong>${esc(c.name)}</strong></a><small>${esc(c.email)}</small></div></div>` },
+      { key: 'company', label: 'Company', sortable: true, render: c => `<span class="cell-title">${esc(c.company)}</span><span class="cell-sub">${esc(c.city)}</span>` },
+      { key: 'segment', label: 'Segment', sortable: true, render: c => `<span class="badge tone-${segTone[c.segment]}">${esc(c.segment)}</span>` },
+      { key: 'status', label: 'Status', sortable: true, render: c => badge(c.status) },
+      { key: 'orders', label: 'Orders', sortable: true, cls: 'col-xl num', render: c => fmt.num(c.orders) },
+      { key: 'ltv', label: 'Lifetime value', sortable: true, cls: 'num', render: c => `<span class="fw-600">${fmt.money(c.ltv)}</span>` },
+      { key: 'lastOrder', label: 'Last order', sortable: true, cls: 'col-xl', render: c => `<span class="nowrap">${fmt.date(c.lastOrder)}</span>` },
+      { label: '', cls: 'cell-actions', render: c => rowMenu([
+        { label: 'View profile', icon: 'eye', href: `customer-detail.html?id=${c.id}` },
+        { label: 'Edit', icon: 'pencil-simple', action: 'edit' },
+        { label: 'Send email', icon: 'envelope-simple', href: `mailto:${c.email}` },
+        '-',
+        { label: 'Delete', icon: 'trash', action: 'delete', danger: true },
+      ], `Actions for ${c.name}`) },
+    ],
+  });
+
+  // Add / edit modal
+  const form = $('#customer-form');
+  $('#c-owner').innerHTML = DB.salesTeam.map(n => `<option>${esc(n)}</option>`).join('');
+  function openForm(c) {
+    form.reset();
+    $('#customer-modal-title').textContent = c ? 'Edit customer' : 'Add customer';
+    $('#customer-submit').textContent = c ? 'Save changes' : 'Save customer';
+    form.elements.id.value = ''; // hidden inputs survive form.reset()
+    if (c) for (const k of ['id', 'name', 'email', 'company', 'phone', 'segment', 'status', 'city', 'owner']) form.elements[k].value = c[k] ?? '';
+    openModal('#customer-modal');
+  }
+  $('#add-customer').addEventListener('click', () => openForm());
+  form.addEventListener('valid', e => {
+    const d = e.detail;
+    if (d.id) { Object.assign(list.find(d.id), d); list.render(); toast(`${d.name} was updated`); }
+    else { list.add({ ...d, id: `CUS-${Date.now().toString().slice(-4)}`, ltv: 0, orders: 0, lastOrder: new Date().toISOString() }); toast(`${d.name} was added to customers`); }
+  });
+
+  // Row + bulk actions
+  $('#customers').addEventListener('click', async e => {
+    const b = e.target.closest('[data-row-action]');
+    if (!b) return;
+    const c = list.find(b.closest('tr').dataset.id);
+    if (b.dataset.rowAction === 'edit') openForm(c);
+    if (b.dataset.rowAction === 'delete' && await confirm({ title: 'Delete customer?', text: `${c.name} and their order history will be removed. This can’t be undone.`, confirm: 'Delete customer' })) {
+      list.remove([c.id]); toast(`${c.name} was deleted`);
+    }
+  });
+  $('#bulk-delete').addEventListener('click', async () => {
+    const ids = list.selected;
+    if (await confirm({ title: `Delete ${ids.length} customers?`, text: 'Selected customers and their history will be removed.', confirm: 'Delete all' })) {
+      list.remove(ids); toast(`${ids.length} customers deleted`);
+    }
+  });
+  $('#bulk-email').addEventListener('click', () => toast(`Email draft created for ${list.selected.length} customers`, { type: 'info' }));
+</script>
+</body>
+</html>

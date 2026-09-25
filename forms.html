@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Form Elements · Nimbus Admin</title>
+  <meta name="description" content="Form Elements — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>UI Kit</span><span aria-current="page">Form elements</span></nav>
+          <h1 class="page-title">Form elements</h1>
+          <p class="page-subtitle">Native inputs with soft styling, visible labels and inline validation.</p>
+        </div>
+        <div class="page-actions"><a class="btn btn-secondary" href="components.html"><i class="ph ph-puzzle-piece"></i>Components</a></div>
+      </div>
+
+      <div class="row">
+        <section class="card xl-6" aria-labelledby="f-inputs">
+          <div class="card-header"><div><h2 class="card-title" id="f-inputs">Text inputs</h2><p class="card-subtitle">Labels always stay visible</p></div></div>
+          <div class="card-body form-grid">
+            <div class="field"><label class="label" for="i-text">Full name</label><input class="input" id="i-text" placeholder="Olivia Carter" autocomplete="name"></div>
+            <div class="field"><label class="label" for="i-email">Email</label><div class="input-icon"><i class="ph ph-envelope-simple"></i><input class="input" id="i-email" type="email" placeholder="you@company.com" autocomplete="email"></div><p class="hint">We’ll never share your email.</p></div>
+            <div class="field"><label class="label" for="i-pass">Password</label><div class="input-icon"><i class="ph ph-lock-key"></i><input class="input" id="i-pass" type="password" value="nimbus-demo" autocomplete="new-password"><button class="input-action" type="button" data-action="toggle-password" aria-label="Show password" aria-pressed="false"><i class="ph ph-eye"></i></button></div></div>
+            <div class="field"><label class="label" for="i-site">Website</label><div class="input-group"><span class="addon">https://</span><input class="input" id="i-site" placeholder="nimbus.io"></div></div>
+            <div class="field"><label class="label" for="i-price">Price</label><div class="input-group"><span class="addon">$</span><input class="input" id="i-price" type="number" step="0.01" inputmode="decimal" placeholder="0.00"><span class="addon">USD</span></div></div>
+            <div class="form-grid cols-2">
+              <div class="field"><label class="label" for="i-disabled">Disabled</label><input class="input" id="i-disabled" disabled value="Can’t touch this"></div>
+              <div class="field"><label class="label" for="i-readonly">Read only</label><input class="input" id="i-readonly" readonly value="INV-2026-0148"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="f-select">
+          <div class="card-header"><div><h2 class="card-title" id="f-select">Selects &amp; text areas</h2><p class="card-subtitle">Custom caret, native behavior</p></div></div>
+          <div class="card-body form-grid">
+            <div class="field"><label class="label" for="s-country">Country</label><select class="select" id="s-country" autocomplete="country-name"><option>United States</option><option>Canada</option><option>United Kingdom</option><option>Germany</option><option>Singapore</option><option>Malaysia</option></select></div>
+            <div class="field"><label class="label" for="s-group">Grouped options</label><select class="select" id="s-group"><optgroup label="Sales"><option>Orders</option><option>Invoices</option></optgroup><optgroup label="Inventory"><option>Products</option><option>Suppliers</option></optgroup></select></div>
+            <div class="field"><label class="label" for="s-multi">Multiple (Ctrl/Cmd + click)</label><select class="select" id="s-multi" multiple style="height:auto;padding:8px;background-image:none"><option selected>Email</option><option>Push</option><option selected>SMS</option><option>Slack</option></select></div>
+            <div class="field"><div class="label-row"><label class="label" for="t-notes">Notes</label><span class="hint" id="t-count">0 / 200</span></div><textarea class="textarea" id="t-notes" maxlength="200" placeholder="Type something…"></textarea></div>
+          </div>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="f-choice">
+          <div class="card-header"><div><h2 class="card-title" id="f-choice">Checkboxes, radios &amp; switches</h2><p class="card-subtitle">Large, easy targets</p></div></div>
+          <div class="card-body stack">
+            <fieldset class="stack-sm" style="border:0;padding:0;margin:0"><legend class="label mb-2">Notify me about</legend>
+              <label class="check"><input type="checkbox" checked>New orders</label>
+              <label class="check"><input type="checkbox" checked>Low stock</label>
+              <label class="check align-start"><input type="checkbox"><span>Weekly digest<small>A summary every Monday at 8:00 AM</small></span></label>
+            </fieldset>
+            <fieldset class="flex wrap gap-4" style="border:0;padding:0;margin:0"><legend class="label mb-2">Billing cycle</legend>
+              <label class="check"><input type="radio" name="cycle" checked>Monthly</label><label class="check"><input type="radio" name="cycle">Quarterly</label><label class="check"><input type="radio" name="cycle">Yearly</label>
+            </fieldset>
+            <div>
+              <div class="setting-row"><div><strong>Auto-backup</strong><small>Back up data every night</small></div><input class="switch" type="checkbox" role="switch" checked aria-label="Auto-backup"></div>
+              <div class="setting-row"><div><strong>Maintenance mode</strong><small>Disabled switch</small></div><input class="switch" type="checkbox" role="switch" disabled aria-label="Maintenance mode"></div>
+            </div>
+            <div class="form-grid cols-2" role="radiogroup" aria-label="Plan">
+              <label class="option-card"><input type="radio" name="plan" checked><span><strong>Growth</strong><small>$49 / seat</small></span></label>
+              <label class="option-card"><input type="radio" name="plan"><span><strong>Enterprise</strong><small>$129 / seat</small></span></label>
+            </div>
+          </div>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="f-pickers">
+          <div class="card-header"><div><h2 class="card-title" id="f-pickers">Pickers &amp; uploads</h2><p class="card-subtitle">Native date, time, color and file inputs</p></div></div>
+          <div class="card-body form-grid cols-2">
+            <div class="field"><label class="label" for="p-date">Date</label><input class="input" id="p-date" type="date"></div>
+            <div class="field"><label class="label" for="p-time">Time</label><input class="input" id="p-time" type="time" value="09:30"></div>
+            <div class="field"><label class="label" for="p-dt">Date &amp; time</label><input class="input" id="p-dt" type="datetime-local"></div>
+            <div class="field"><label class="label" for="p-month">Month</label><input class="input" id="p-month" type="month"></div>
+            <div class="field"><label class="label" for="p-color">Brand color</label><div class="flex gap-2"><input class="input" id="p-color" type="color" value="#4e5be6"><input class="input" id="p-color-hex" value="#4e5be6" aria-label="Brand color hex value" pattern="#[0-9a-fA-F]{6}"></div></div>
+            <div class="field"><label class="label" for="p-range">Discount: <output id="range-out" for="p-range">15</output>%</label><input id="p-range" type="range" min="0" max="50" value="15" style="margin-top:12px"></div>
+            <div class="field span-all"><label class="label" for="p-file">Attachment</label><input class="input" id="p-file" type="file"></div>
+            <label class="dropzone span-all" for="p-drop"><span class="icon-tile tone-primary"><i class="ph ph-cloud-arrow-up"></i></span><strong>Drop files to upload</strong><span class="hint" id="drop-hint">or click to browse — PDF, PNG, JPG up to 10 MB</span><input id="p-drop" type="file" multiple></label>
+          </div>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="f-validation">
+          <div class="card-header"><div><h2 class="card-title" id="f-validation">Inline validation</h2><p class="card-subtitle">Errors appear next to the field after you leave it</p></div></div>
+          <form class="card-body form-grid cols-2" data-validate novalidate data-success="Account details look great!">
+            <div class="field"><label class="label" for="v-first">First name <span class="req">*</span></label><input class="input" id="v-first" name="first" required autocomplete="given-name"></div>
+            <div class="field"><label class="label" for="v-last">Last name <span class="req">*</span></label><input class="input" id="v-last" name="last" required autocomplete="family-name"></div>
+            <div class="field span-all"><label class="label" for="v-email">Work email <span class="req">*</span></label><input class="input" id="v-email" name="email" type="email" required autocomplete="email" data-error="Enter a valid email like name@company.com."></div>
+            <div class="field"><label class="label" for="v-phone">Phone</label><input class="input" id="v-phone" name="phone" type="tel" inputmode="tel" pattern="[+0-9 ()-]{7,20}" autocomplete="tel" data-error="Use digits, spaces and + ( ) - only."></div>
+            <div class="field"><label class="label" for="v-zip">ZIP code <span class="req">*</span></label><input class="input" id="v-zip" name="zip" required inputmode="numeric" pattern="[0-9]{5}" autocomplete="postal-code" data-error="ZIP codes have 5 digits."></div>
+            <div class="field span-all"><label class="check"><input type="checkbox" name="terms" required data-error="Please accept the terms to continue.">I agree to the <a href="#">terms of service</a></label></div>
+            <div class="span-all flex justify-end gap-2"><button class="btn btn-ghost" type="reset">Reset</button><button class="btn btn-primary" type="submit">Validate form</button></div>
+          </form>
+        </section>
+
+        <section class="card xl-6" aria-labelledby="f-wizard">
+          <div class="card-header"><div><h2 class="card-title" id="f-wizard">Multi-step wizard</h2><p class="card-subtitle">Each step validates before moving on</p></div></div>
+          <form class="card-body stack" id="wizard" novalidate>
+            <ol class="stepper horizontal" id="wizard-steps"></ol>
+            <div class="form-grid" data-step="0"><div class="field"><label class="label" for="w-company">Company name <span class="req">*</span></label><input class="input" id="w-company" name="company" required></div><div class="field"><label class="label" for="w-size">Team size</label><select class="select" id="w-size" name="size"><option>1–10</option><option>11–50</option><option>51–200</option><option>200+</option></select></div></div>
+            <div class="form-grid" data-step="1" hidden><div class="field"><label class="label" for="w-name">Your name <span class="req">*</span></label><input class="input" id="w-name" name="name" required></div><div class="field"><label class="label" for="w-mail">Email <span class="req">*</span></label><input class="input" id="w-mail" name="email" type="email" required></div></div>
+            <div data-step="2" hidden><div class="alert tone-success"><i class="ph ph-check-circle"></i><div><strong>Ready to go</strong><span id="w-summary"></span></div></div></div>
+            <div class="flex justify-between gap-2"><button class="btn btn-secondary" type="button" id="w-back">Back</button><button class="btn btn-primary" type="button" id="w-next">Continue</button></div>
+          </form>
+        </section>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { toast, $, $$ } = App;
+  $('#t-notes').addEventListener('input', e => { $('#t-count').textContent = `${e.target.value.length} / 200`; });
+  $('#p-range').addEventListener('input', e => { $('#range-out').textContent = e.target.value; });
+  $('#p-color').addEventListener('input', e => { $('#p-color-hex').value = e.target.value; });
+  $('#p-color-hex').addEventListener('input', e => { if (/^#[0-9a-f]{6}$/i.test(e.target.value)) $('#p-color').value = e.target.value; });
+  $('#p-drop').addEventListener('change', e => { const n = e.target.files.length; $('#drop-hint').textContent = n ? `${n} file${n > 1 ? 's' : ''} selected` : 'or click to browse — PDF, PNG, JPG up to 10 MB'; });
+  $('#p-date').value = DB.ymd(new Date());
+
+  // Wizard: validate the visible step with the same inline messages as data-validate forms
+  const STEPS = ['Company', 'Contact', 'Confirm'];
+  let step = 0;
+  const panes = $$('#wizard [data-step]');
+  function renderWizard() {
+    panes.forEach((p, i) => { p.hidden = i !== step; });
+    $('#wizard-steps').innerHTML = STEPS.map((s, i) => `<li class="step ${i < step ? 'is-done' : i === step ? 'is-current' : ''}"${i === step ? ' aria-current="step"' : ''}><span class="step-icon">${i < step ? '<i class="ph ph-check"></i>' : i + 1}</span><div><p class="step-title">${s}</p></div></li>`).join('');
+    $('#w-back').disabled = step === 0;
+    $('#w-next').textContent = step === STEPS.length - 1 ? 'Finish' : 'Continue';
+    if (step === 2) $('#w-summary').textContent = `${$('#w-company').value} (${$('#w-size').value} people) · ${$('#w-name').value}, ${$('#w-mail').value}`;
+  }
+  $('#w-next').addEventListener('click', () => {
+    const bad = $$('input, select', panes[step]).filter(f => f.willValidate && !App.validate(f));
+    if (bad.length) return bad[0].focus();
+    if (step === STEPS.length - 1) { toast('Workspace created', { title: 'All done!' }); step = 0; $('#wizard').reset(); } else step++;
+    renderWizard();
+  });
+  $('#w-back').addEventListener('click', () => { step = Math.max(0, step - 1); renderWizard(); });
+  renderWizard();
+</script>
+</body>
+</html>

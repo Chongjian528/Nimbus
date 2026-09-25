@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign Up · Nimbus Admin</title>
+  <meta name="description" content="Create a Nimbus ERP &amp; CRM workspace.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+</head>
+<body>
+<main class="auth" id="main">
+  <section class="auth-aside" aria-label="Why Nimbus">
+    <a class="brand" href="index.html"><img src="assets/img/favicon.svg" alt="" width="40" height="40"><span class="brand-name">Nimbus</span></a>
+    <div>
+      <h2>Start free. Grow into a full ERP when you’re ready.</h2>
+      <p>Set up takes about five minutes — import customers and products from a spreadsheet and you’re live.</p>
+    </div>
+    <ul class="stack-sm" style="list-style:none">
+      <li class="glass flex items-center gap-3" style="padding:14px 16px"><span class="icon-tile sm tone-primary"><i class="ph ph-users-three"></i></span><span><strong class="text-sm">CRM &amp; pipeline</strong><br><span class="text-xs text-2">Leads, deals and customer history</span></span></li>
+      <li class="glass flex items-center gap-3" style="padding:14px 16px"><span class="icon-tile sm tone-warning"><i class="ph ph-package"></i></span><span><strong class="text-sm">Inventory</strong><br><span class="text-xs text-2">Multi-warehouse stock and purchasing</span></span></li>
+      <li class="glass flex items-center gap-3" style="padding:14px 16px"><span class="icon-tile sm tone-success"><i class="ph ph-wallet"></i></span><span><strong class="text-sm">Finance &amp; payroll</strong><br><span class="text-xs text-2">Invoices, expenses and pay runs</span></span></li>
+    </ul>
+    <p class="text-xs text-2">14-day free trial · No credit card required · Cancel any time</p>
+  </section>
+
+  <section class="auth-main">
+    <button class="btn btn-ghost btn-icon" type="button" data-action="toggle-theme" aria-label="Switch theme" style="position:absolute;top:16px;right:16px"><i class="ph ph-moon"></i></button>
+    <div class="auth-card">
+      <a class="brand mobile-logo mb-6" href="index.html"><img src="assets/img/favicon.svg" alt="" width="40" height="40"><span class="brand-name">Nimbus</span></a>
+      <h1>Create your workspace</h1>
+      <p class="lead">Free for 14 days — no credit card needed.</p>
+
+      <form class="stack-sm" data-validate novalidate data-redirect="index.html">
+        <div class="form-grid cols-2">
+          <div class="field"><label class="label" for="name">Full name</label><input class="input" id="name" name="name" required autocomplete="name"></div>
+          <div class="field"><label class="label" for="company">Company</label><input class="input" id="company" name="company" required autocomplete="organization"></div>
+        </div>
+        <div class="field"><label class="label" for="email">Work email</label><div class="input-icon"><i class="ph ph-envelope-simple"></i><input class="input" id="email" name="email" type="email" required autocomplete="email"></div></div>
+        <div class="field"><label class="label" for="password">Password</label>
+          <div class="input-icon"><i class="ph ph-lock-key"></i><input class="input" id="password" name="password" type="password" required minlength="10" autocomplete="new-password" aria-describedby="pw-hint"><button class="input-action" type="button" data-action="toggle-password" aria-label="Show password" aria-pressed="false"><i class="ph ph-eye"></i></button></div>
+          <div class="strength mt-1" id="strength" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+          <p class="hint" id="pw-hint">At least 10 characters with a number and a symbol.</p></div>
+        <div class="field"><label class="label" for="confirm">Confirm password</label><div class="input-icon"><i class="ph ph-lock-key"></i><input class="input" id="confirm" name="confirm" type="password" required data-match="#password" autocomplete="new-password"></div></div>
+        <div class="field"><label class="check align-start"><input type="checkbox" name="terms" required data-error="Please accept the terms to continue."><span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span></label></div>
+        <button class="btn btn-primary btn-lg btn-block mt-2" type="submit">Create account</button>
+      </form>
+      <p class="text-sm text-2 text-center mt-6">Already have an account? <a class="fw-600" href="login.html">Sign in</a></p>
+    </div>
+  </section>
+</main>
+<script>
+  const bars = document.querySelectorAll('#strength span'), hint = document.getElementById('pw-hint');
+  document.getElementById('password').addEventListener('input', e => {
+    const v = e.target.value, score = [/.{10,}/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter(r => r.test(v)).length;
+    const color = score <= 1 ? 'var(--danger)' : score === 2 ? 'var(--warning)' : 'var(--success)';
+    bars.forEach((b, i) => { b.style.background = v && i < Math.max(1, score) ? color : ''; });
+    hint.textContent = !v ? 'At least 10 characters with a number and a symbol.' : `Password strength: ${['Weak', 'Weak', 'Fair', 'Good', 'Strong'][score]}`;
+  });
+</script>
+</body>
+</html>

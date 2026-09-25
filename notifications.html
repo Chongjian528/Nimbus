@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notifications · Nimbus Admin</title>
+  <meta name="description" content="Notifications — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Account</span><span aria-current="page">Notifications</span></nav>
+          <h1 class="page-title">Notifications</h1>
+          <p class="page-subtitle" id="summary"></p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-secondary" href="settings.html"><i class="ph ph-gear-six"></i>Preferences</a>
+          <button class="btn btn-primary" type="button" id="read-all"><i class="ph ph-checks"></i>Mark all as read</button>
+        </div>
+      </div>
+
+      <section class="card" aria-label="Notification feed">
+        <div class="tabs" role="tablist" aria-label="Filter notifications" id="tabs"></div>
+        <div class="card-body" id="feed" aria-live="polite"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { fmt, esc, toast, $ } = App;
+  const items = DB.notifications.map(n => ({ ...n }));
+  const TYPES = ['All', 'Unread', 'Mentions', 'Orders', 'Finance', 'Inventory', 'CRM', 'People', 'System'];
+  let current = 'All';
+  const group = t => { const d = (Date.now() - new Date(t)) / 864e5, today = new Date().getHours() / 24; return d < today ? 'Today' : d < today + 1 ? 'Yesterday' : d < 7 ? 'Earlier this week' : 'Older'; };
+
+  function render() {
+    const unread = items.filter(n => n.unread).length;
+    $('#summary').textContent = unread ? `You have ${unread} unread notification${unread > 1 ? 's' : ''}.` : 'You’re all caught up.';
+    $('#read-all').disabled = !unread;
+    $('#tabs').innerHTML = TYPES.map(t => { const n = t === 'All' ? items.length : t === 'Unread' ? unread : items.filter(x => x.type === t).length;
+      return `<button class="tab" role="tab" type="button" data-value="${t}" aria-selected="${t === current}" ${t === current ? '' : 'tabindex="-1"'}>${t}${n ? `<span class="count">${n}</span>` : ''}</button>`; }).join('');
+    const shown = items.filter(n => current === 'All' || (current === 'Unread' ? n.unread : n.type === current));
+    const groups = [...new Set(shown.map(n => group(n.time)))];
+    $('#feed').innerHTML = shown.length ? groups.map(g => `<h2 class="text-xs fw-700 text-3 mb-2 mt-4" style="letter-spacing:.06em;text-transform:uppercase">${g}</h2>
+      <ul class="list">${shown.filter(n => group(n.time) === g).map(n => `
+        <li class="list-item" style="align-items:flex-start">
+          <span class="icon-tile tone-${n.tone}"><i class="ph ph-${n.icon}"></i></span>
+          <div class="list-body"><a class="list-title" href="${n.href}" style="white-space:normal">${esc(n.title)}</a><p class="text-sm text-2">${esc(n.text)}</p>
+            <p class="text-xs text-3 mt-1">${fmt.ago(n.time)} · ${n.type}</p></div>
+          ${n.unread ? '<span class="dot" style="margin-top:8px" aria-label="Unread"></span>' : ''}
+          <button class="btn btn-ghost btn-icon btn-sm" type="button" data-toggle-read="${n.id}" aria-label="Mark as ${n.unread ? 'read' : 'unread'}" data-tooltip="Mark as ${n.unread ? 'read' : 'unread'}"><i class="ph ph-${n.unread ? 'check' : 'envelope-simple'}"></i></button>
+          <button class="btn btn-ghost btn-icon btn-sm" type="button" data-dismiss="${n.id}" aria-label="Dismiss" data-tooltip="Dismiss"><i class="ph ph-x"></i></button>
+        </li>`).join('')}</ul>`).join('')
+      : `<div class="empty"><span class="icon-tile tone-success"><i class="ph ph-bell-simple-slash"></i></span><h3>Nothing here</h3><p>No notifications match this filter.</p></div>`;
+  }
+  render();
+  $('#tabs').addEventListener('tabchange', e => { current = e.detail; render(); $(`#tabs [data-value="${current}"]`)?.focus(); });
+  $('#feed').addEventListener('click', e => {
+    const t = e.target.closest('[data-toggle-read]'), d = e.target.closest('[data-dismiss]');
+    if (t) { const n = items.find(x => x.id === t.dataset.toggleRead); n.unread = !n.unread; render(); }
+    if (d) { items.splice(items.findIndex(x => x.id === d.dataset.dismiss), 1); render(); toast('Notification dismissed', { type: 'info' }); }
+  });
+  $('#read-all').addEventListener('click', () => { items.forEach(n => { n.unread = false; }); render(); toast('All notifications marked as read'); });
+</script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Employees · Nimbus Admin</title>
+  <meta name="description" content="Employees — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>People</span><span aria-current="page">Employees</span></nav>
+          <h1 class="page-title">Employees</h1>
+          <p class="page-subtitle">Your team directory, departments and headcount.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" type="button" data-action="print"><i class="ph ph-download-simple"></i>Export</button>
+          <button class="btn btn-primary" type="button" data-modal="#employee-modal"><i class="ph ph-user-plus"></i>Add employee</button>
+        </div>
+      </div>
+
+      <section class="row" aria-label="Headcount summary" id="kpis"></section>
+
+      <section class="row stretch">
+        <div class="card xl-8">
+          <div class="card-header"><div><h2 class="card-title">Headcount by department</h2><p class="card-subtitle">Current employees</p></div></div>
+          <div class="card-body"><div id="dept-chart" class="chart" style="--chart-h:260px"></div></div>
+        </div>
+        <div class="card xl-4">
+          <div class="card-header"><div><h2 class="card-title">Upcoming anniversaries</h2><p class="card-subtitle">Celebrate your people</p></div></div>
+          <div class="card-body"><ul class="list" id="anniversaries"></ul></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="table-toolbar">
+          <div class="input-icon"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" id="q" placeholder="Search name, role or email…" aria-label="Search employees"></div>
+          <select class="select" id="dept" aria-label="Filter by department"><option value="all">All departments</option></select>
+          <select class="select" id="status" aria-label="Filter by status"><option value="all">Any status</option><option>Active</option><option>Remote</option><option>On leave</option></select>
+          <div class="segmented ml-auto" data-segmented id="view" aria-label="View">
+            <button type="button" aria-pressed="true" data-value="grid"><i class="ph ph-squares-four"></i>Cards</button>
+            <button type="button" aria-pressed="false" data-value="list"><i class="ph ph-rows"></i>Table</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="auto-grid" id="grid" style="--min:250px" aria-label="Employee cards"></section>
+
+      <section class="card" id="table-view" hidden aria-label="Employee table">
+        <div class="table-wrap"><table class="table table-cards"></table></div>
+        <div class="table-footer"><span data-table-info></span><nav class="pagination" aria-label="Pagination" data-table-pager></nav></div>
+      </section>
+
+      <dialog class="modal modal-lg" id="employee-modal" aria-labelledby="emp-title">
+        <form class="modal-form" data-validate novalidate id="employee-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="emp-title">Add employee</h2><p class="modal-desc">An invitation to set up their account is sent automatically.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body form-grid cols-2">
+            <div class="field"><label class="label" for="m-name">Full name <span class="req">*</span></label><input class="input" id="m-name" name="name" required autocomplete="name"></div>
+            <div class="field"><label class="label" for="m-email">Work email <span class="req">*</span></label><input class="input" id="m-email" name="email" type="email" required placeholder="name@nimbus.io"></div>
+            <div class="field"><label class="label" for="m-role">Job title <span class="req">*</span></label><input class="input" id="m-role" name="role" required></div>
+            <div class="field"><label class="label" for="m-dept">Department</label><select class="select" id="m-dept" name="department"></select></div>
+            <div class="field"><label class="label" for="m-type">Employment type</label><select class="select" id="m-type" name="type"><option>Full-time</option><option>Part-time</option><option>Contract</option></select></div>
+            <div class="field"><label class="label" for="m-start">Start date</label><input class="input" id="m-start" name="start" type="date" required></div>
+            <div class="field"><label class="label" for="m-salary">Annual salary</label><div class="input-group"><span class="addon">$</span><input class="input" id="m-salary" name="salary" type="number" min="0" step="1000" inputmode="numeric"></div></div>
+            <div class="field"><label class="label" for="m-loc">Location</label><input class="input" id="m-loc" name="location" placeholder="City, Country"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Add employee</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/plugins/apexcharts/apexcharts.min.js"></script>
+<script>
+  const { fmt, esc, avatar, badge, table, chart, toast, $ } = App;
+  const people = DB.employees;
+  const depts = [...new Set(people.map(e => e.department))];
+  const DEPT_TONE = { Sales: 'primary', Engineering: 'violet', Marketing: 'pink', Finance: 'success', Operations: 'warning', 'Human Resources': 'info', Support: 'info', Design: 'pink' };
+  $('#dept').insertAdjacentHTML('beforeend', depts.map(d => `<option>${d}</option>`).join(''));
+  $('#m-dept').innerHTML = depts.map(d => `<option>${d}</option>`).join('');
+  $('#m-start').defaultValue = DB.ymd(new Date(Date.now() + 14 * 864e5));
+
+  const renderKpis = () => {
+    const recent = people.filter(e => Date.now() - new Date(e.joined) < 180 * 864e5).length;
+    $('#kpis').innerHTML = [['Headcount', people.length, 'users-three', 'primary'], ['New hires (6 mo)', recent, 'user-plus', 'success'], ['On leave', people.filter(e => e.status === 'On leave').length, 'airplane-tilt', 'warning'], ['Open positions', 6, 'briefcase', 'violet']]
+      .map(([k, v, i, t]) => `<article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-${t}"><i class="ph ph-${i}"></i></span><div class="grow"><h2 class="stat-label">${k}</h2><p class="stat-value">${v}</p></div></article>`).join('');
+  };
+  renderKpis();
+
+  const list = table('#table-view', {
+    data: people, caption: 'Employees', pageSize: 10, rowClick: false,
+    columns: [
+      { key: 'name', label: 'Employee', sortable: true, cls: 'cell-main', render: e => `<div class="cell-user">${avatar(e.name)}<div><strong>${esc(e.name)}</strong><small>${esc(e.email)}</small></div></div>` },
+      { key: 'role', label: 'Role', sortable: true },
+      { key: 'department', label: 'Department', sortable: true, render: e => `<span class="badge tone-${DEPT_TONE[e.department]}">${e.department}</span>` },
+      { key: 'location', label: 'Location', sortable: true, cls: 'col-xl' },
+      { key: 'joined', label: 'Joined', sortable: true, cls: 'col-xl', render: e => `<span class="nowrap">${fmt.date(e.joined)}</span>` },
+      { key: 'status', label: 'Status', sortable: true, render: e => badge(e.status) },
+    ],
+  });
+
+  function render() {
+    const q = $('#q').value.trim().toLowerCase(), dept = $('#dept').value, status = $('#status').value;
+    const items = people.filter(e => (!q || (e.name + e.role + e.email).toLowerCase().includes(q)) && (dept === 'all' || e.department === dept) && (status === 'all' || e.status === status));
+    list.data = items;
+    $('#grid').innerHTML = items.map(e => `
+      <article class="card" style="text-align:center">
+        <div class="card-body stack-sm" style="justify-items:center">
+          <span style="position:relative">${avatar(e.name, 'avatar-xl')}<span class="presence ${e.status === 'On leave' ? 'away' : 'online'}" style="width:16px;height:16px;right:6px;bottom:6px" title="${e.status}"></span></span>
+          <div><h2 class="fw-700">${esc(e.name)}</h2><p class="text-sm text-2">${esc(e.role)}</p></div>
+          <div class="flex wrap gap-2 justify-center"><span class="badge tone-${DEPT_TONE[e.department]}">${e.department}</span>${badge(e.status)}</div>
+          <ul class="info-list" style="text-align:left;width:100%;margin-top:6px">
+            <li><i class="ph ph-envelope-simple"></i><a class="truncate" href="mailto:${e.email}">${esc(e.email)}</a></li>
+            <li><i class="ph ph-map-pin"></i>${esc(e.location)}</li>
+            <li><i class="ph ph-calendar-blank"></i>Joined ${fmt.date(e.joined)}</li>
+          </ul>
+        </div>
+        <div class="card-footer flex gap-2">
+          <a class="btn btn-secondary btn-sm grow" href="messages.html"><i class="ph ph-chat-circle-dots"></i>Message</a>
+          <a class="btn btn-soft btn-sm grow" href="profile.html"><i class="ph ph-user"></i>Profile</a>
+        </div>
+      </article>`).join('') || `<div class="card empty" style="grid-column:1/-1"><span class="icon-tile tone-neutral"><i class="ph ph-users"></i></span><h3>No employees found</h3><p>Try adjusting the filters.</p></div>`;
+  }
+  ['q', 'dept', 'status'].forEach(id => $('#' + id).addEventListener(id === 'q' ? 'input' : 'change', render));
+  $('#view').addEventListener('segment', e => { $('#grid').hidden = e.detail !== 'grid'; $('#table-view').hidden = e.detail !== 'list'; });
+  render();
+
+  const counts = depts.map(d => [d, people.filter(e => e.department === d).length]).sort((a, b) => b[1] - a[1]);
+  chart('#dept-chart', {
+    chart: { type: 'bar', height: 260 },
+    series: [{ name: 'Employees', data: counts.map(c => c[1]) }],
+    colors: ['--chart-1'],
+    plotOptions: { bar: { columnWidth: '44%', dataLabels: { position: 'top' } } },
+    dataLabels: { enabled: true, offsetY: -20, style: { colors: ['--text-2'], fontWeight: 600 } },
+    xaxis: { categories: counts.map(c => c[0]) },
+    yaxis: { min: 0, max: App.niceMax(counts[0][1] * 1.25, 3), tickAmount: 3, labels: { formatter: v => Math.round(v) } },
+  });
+
+  const soon = [...people].map(e => { const j = new Date(e.joined), n = new Date(); n.setHours(0, 0, 0, 0); let next = new Date(n.getFullYear(), j.getMonth(), j.getDate()); if (next < n) next.setFullYear(n.getFullYear() + 1); return { e, next, years: next.getFullYear() - j.getFullYear() }; })
+    .filter(x => x.years > 0).sort((a, b) => a.next - b.next).slice(0, 5);
+  $('#anniversaries').innerHTML = soon.map(({ e, next, years }) => `<li class="list-item">${avatar(e.name, 'avatar-sm')}<span class="list-body"><span class="list-title">${esc(e.name)}</span><span class="list-meta">${years} year${years > 1 ? 's' : ''} · ${fmt.day(next)}</span></span><button class="btn btn-ghost btn-icon btn-sm" type="button" data-cheer="${esc(e.name)}" aria-label="Send kudos to ${esc(e.name)}"><i class="ph ph-confetti"></i></button></li>`).join('');
+  $('#anniversaries').addEventListener('click', e => { const b = e.target.closest('[data-cheer]'); if (b) toast(`Kudos sent to ${b.dataset.cheer}`); });
+
+  $('#employee-form').addEventListener('valid', e => {
+    const d = e.detail;
+    people.unshift({ id: `EMP-${200 + people.length}`, name: d.name, role: d.role, department: d.department, email: d.email, phone: '', location: d.location || 'Remote', status: 'Active', type: d.type, joined: new Date(d.start + 'T12:00').toISOString(), salary: +d.salary || 0, attendance: 100, performance: 'Meets' });
+    render(); renderKpis(); toast(`Invitation sent to ${d.email}`, { title: `${d.name} added` });
+  });
+</script>
+</body>
+</html>

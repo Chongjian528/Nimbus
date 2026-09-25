@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings · Nimbus Admin</title>
+  <meta name="description" content="Settings — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Administration</span><span aria-current="page">Settings</span></nav>
+          <h1 class="page-title">Settings</h1>
+          <p class="page-subtitle">Workspace preferences, security and integrations.</p>
+        </div>
+      </div>
+
+      <div class="settings">
+        <nav class="card vtabs" role="tablist" aria-label="Settings sections" aria-orientation="vertical">
+          <button class="vtab" role="tab" id="t-general" aria-controls="s-general" aria-selected="true"><i class="ph ph-buildings"></i>General</button>
+          <button class="vtab" role="tab" id="t-notifications" aria-controls="s-notifications" aria-selected="false" tabindex="-1"><i class="ph ph-bell"></i>Notifications</button>
+          <button class="vtab" role="tab" id="t-security" aria-controls="s-security" aria-selected="false" tabindex="-1"><i class="ph ph-lock-key"></i>Security</button>
+          <button class="vtab" role="tab" id="t-appearance" aria-controls="s-appearance" aria-selected="false" tabindex="-1"><i class="ph ph-palette"></i>Appearance</button>
+          <button class="vtab" role="tab" id="t-integrations" aria-controls="s-integrations" aria-selected="false" tabindex="-1"><i class="ph ph-plugs-connected"></i>Integrations</button>
+        </nav>
+
+        <div>
+          <!-- General -->
+          <form class="card tab-panel" role="tabpanel" id="s-general" aria-labelledby="t-general" data-validate novalidate data-keep data-success="Company settings saved">
+            <div class="card-header bordered"><div><h2 class="card-title">Company profile</h2><p class="card-subtitle">Shown on invoices, emails and the customer portal.</p></div></div>
+            <div class="card-body">
+              <div class="flex items-center gap-4 wrap mb-4">
+                <span class="icon-tile lg tone-primary" id="logo-preview" style="width:72px;height:72px;overflow:hidden"><i class="ph ph-buildings"></i></span>
+                <div class="stack-sm" style="gap:6px"><div class="flex gap-2"><label class="btn btn-secondary btn-sm" for="logo" style="cursor:pointer"><i class="ph ph-upload-simple"></i>Upload logo</label><button class="btn btn-ghost btn-sm" type="button" id="remove-logo">Remove</button></div>
+                  <input class="sr-only" id="logo" type="file" accept="image/png,image/jpeg,image/svg+xml"><p class="hint">PNG, JPG or SVG, at least 256×256px.</p></div>
+              </div>
+              <div class="form-grid cols-2">
+                <div class="field"><label class="label" for="g-name">Company name <span class="req">*</span></label><input class="input" id="g-name" name="company" required value="Nimbus Inc."></div>
+                <div class="field"><label class="label" for="g-legal">Legal name</label><input class="input" id="g-legal" name="legal" value="Nimbus Software Inc."></div>
+                <div class="field"><label class="label" for="g-email">Billing email <span class="req">*</span></label><input class="input" id="g-email" name="email" type="email" required value="billing@nimbus.io"></div>
+                <div class="field"><label class="label" for="g-phone">Phone</label><input class="input" id="g-phone" name="phone" type="tel" value="+1 (512) 555-0147"></div>
+                <div class="field"><label class="label" for="g-web">Website</label><input class="input" id="g-web" name="website" type="url" value="https://nimbus.io" data-error="Enter a full URL, e.g. https://example.com"></div>
+                <div class="field"><label class="label" for="g-tax">Tax ID</label><input class="input" id="g-tax" name="tax" value="US-84-2210937"></div>
+                <div class="field span-all"><label class="label" for="g-address">Address</label><textarea class="textarea" id="g-address" name="address" style="min-height:80px">500 Congress Ave, Suite 1200&#10;Austin, TX 78701, United States</textarea></div>
+                <div class="field"><label class="label" for="g-tz">Time zone</label><select class="select" id="g-tz" name="tz"><option>(UTC−06:00) Central Time</option><option>(UTC−05:00) Eastern Time</option><option>(UTC−08:00) Pacific Time</option><option>(UTC+00:00) London</option><option>(UTC+01:00) Berlin</option><option>(UTC+08:00) Singapore</option></select></div>
+                <div class="field"><label class="label" for="g-cur">Currency</label><select class="select" id="g-cur" name="currency"><option>USD — US Dollar</option><option>EUR — Euro</option><option>GBP — British Pound</option><option>SGD — Singapore Dollar</option><option>MYR — Malaysian Ringgit</option></select></div>
+                <div class="field"><label class="label" for="g-fy">Fiscal year starts</label><select class="select" id="g-fy" name="fy"><option>January</option><option>April</option><option>July</option><option>October</option></select></div>
+                <div class="field"><label class="label" for="g-date">Date format</label><select class="select" id="g-date" name="dateFormat"><option>Sep 25, 2026</option><option>25/09/2026</option><option>09/25/2026</option><option>2026-09-25</option></select></div>
+              </div>
+            </div>
+            <div class="card-footer flex justify-between gap-2"><button class="btn btn-ghost" type="reset">Reset</button><button class="btn btn-primary" type="submit">Save changes</button></div>
+          </form>
+
+          <!-- Notifications -->
+          <section class="card tab-panel" role="tabpanel" id="s-notifications" aria-labelledby="t-notifications" hidden>
+            <div class="card-header bordered"><div><h2 class="card-title">Notifications</h2><p class="card-subtitle">Choose how you hear about activity.</p></div></div>
+            <div class="card-body flush">
+              <div class="table-wrap">
+                <table class="table perm-table">
+                  <caption class="sr-only">Notification channels by event</caption>
+                  <thead><tr><th scope="col">Event</th><th scope="col">Email</th><th scope="col">Push</th><th scope="col">SMS</th></tr></thead>
+                  <tbody id="notif-rows"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card-body stack-sm" style="border-top:1px solid var(--border)">
+              <span class="label" id="digest-label">Daily digest</span>
+              <div class="form-grid cols-3" role="radiogroup" aria-labelledby="digest-label">
+                <label class="option-card"><input type="radio" name="digest" checked><span><strong>Every morning</strong><small>8:00 AM summary</small></span></label>
+                <label class="option-card"><input type="radio" name="digest"><span><strong>Weekly</strong><small>Mondays</small></span></label>
+                <label class="option-card"><input type="radio" name="digest"><span><strong>Never</strong><small>Real-time only</small></span></label>
+              </div>
+            </div>
+            <div class="card-footer text-end"><button class="btn btn-primary" type="button" onclick="App.toast('Notification preferences saved')">Save preferences</button></div>
+          </section>
+
+          <!-- Security -->
+          <section class="tab-panel stack" role="tabpanel" id="s-security" aria-labelledby="t-security" hidden>
+            <form class="card" id="password-form" data-validate novalidate data-success="Password updated — other sessions were signed out">
+              <div class="card-header bordered"><div><h2 class="card-title">Change password</h2><p class="card-subtitle">Use at least 10 characters with a mix of letters, numbers and symbols.</p></div></div>
+              <div class="card-body form-grid cols-2">
+                <div class="field span-all"><label class="label" for="pw-current">Current password</label><div class="input-icon"><i class="ph ph-lock-key"></i><input class="input" id="pw-current" name="current" type="password" required autocomplete="current-password"><button class="input-action" type="button" data-action="toggle-password" aria-label="Show password" aria-pressed="false"><i class="ph ph-eye"></i></button></div></div>
+                <div class="field"><label class="label" for="pw-new">New password</label><div class="input-icon"><i class="ph ph-lock-key"></i><input class="input" id="pw-new" name="new" type="password" required minlength="10" autocomplete="new-password"><button class="input-action" type="button" data-action="toggle-password" aria-label="Show password" aria-pressed="false"><i class="ph ph-eye"></i></button></div>
+                  <div class="strength mt-1" id="strength" aria-hidden="true"><span></span><span></span><span></span><span></span></div><p class="hint" id="strength-label">Enter a new password</p></div>
+                <div class="field"><label class="label" for="pw-confirm">Confirm new password</label><div class="input-icon"><i class="ph ph-lock-key"></i><input class="input" id="pw-confirm" name="confirm" type="password" required data-match="#pw-new" autocomplete="new-password"></div></div>
+              </div>
+              <div class="card-footer text-end"><button class="btn btn-primary" type="submit">Update password</button></div>
+            </form>
+            <section class="card">
+              <div class="card-header bordered"><div><h2 class="card-title">Sign-in protection</h2></div></div>
+              <div class="card-body" style="padding-top:4px;padding-bottom:4px">
+                <div class="setting-row"><div><strong>Two-factor authentication</strong><small>Require a code from your authenticator app when signing in.</small></div><input class="switch" type="checkbox" role="switch" checked aria-label="Two-factor authentication" data-note="Two-factor authentication"></div>
+                <div class="setting-row"><div><strong>Login alerts</strong><small>Email me when a new device signs in.</small></div><input class="switch" type="checkbox" role="switch" checked aria-label="Login alerts" data-note="Login alerts"></div>
+                <div class="setting-row"><div><strong>Single sign-on (SAML)</strong><small>Let your team sign in with your identity provider.</small></div><input class="switch" type="checkbox" role="switch" aria-label="Single sign-on" data-note="Single sign-on"></div>
+              </div>
+            </section>
+            <section class="card">
+              <div class="card-header bordered"><div><h2 class="card-title">Active sessions</h2><p class="card-subtitle">Devices signed in to your account</p></div><button class="btn btn-soft-danger btn-sm" type="button" id="signout-all">Sign out others</button></div>
+              <div class="card-body"><ul class="list" id="sessions"></ul></div>
+            </section>
+          </section>
+
+          <!-- Appearance -->
+          <section class="card tab-panel" role="tabpanel" id="s-appearance" aria-labelledby="t-appearance" hidden>
+            <div class="card-header bordered"><div><h2 class="card-title">Appearance</h2><p class="card-subtitle">Personalize how Nimbus looks on this device.</p></div></div>
+            <div class="card-body stack">
+              <div class="stack-sm"><span class="label" id="theme-label">Theme</span>
+                <div class="form-grid cols-3" role="radiogroup" aria-labelledby="theme-label" id="theme-options">
+                  <label class="option-card"><input type="radio" name="theme" value="light"><span><strong><i class="ph ph-sun"></i> Light</strong><small>Soft and bright</small></span></label>
+                  <label class="option-card"><input type="radio" name="theme" value="dark"><span><strong><i class="ph ph-moon"></i> Dark</strong><small>Easy on the eyes</small></span></label>
+                  <label class="option-card"><input type="radio" name="theme" value="system"><span><strong><i class="ph ph-desktop"></i> System</strong><small>Match your device</small></span></label>
+                </div></div>
+              <div class="stack-sm"><span class="label" id="sidebar-label">Sidebar (desktop)</span>
+                <div class="form-grid cols-2" role="radiogroup" aria-labelledby="sidebar-label" id="sidebar-options">
+                  <label class="option-card"><input type="radio" name="sidebar" value="full"><span><strong>Expanded</strong><small>Icons and labels</small></span></label>
+                  <label class="option-card"><input type="radio" name="sidebar" value="mini"><span><strong>Compact</strong><small>Icons only, expands on hover</small></span></label>
+                </div></div>
+              <div>
+                <div class="setting-row"><div><strong>Reduce motion</strong><small>Turn off animations and chart transitions.</small></div><input class="switch" type="checkbox" role="switch" id="motion" aria-label="Reduce motion"></div>
+                <div class="setting-row"><div><strong>Language</strong><small>More languages are coming soon.</small></div><select class="select" style="width:auto" aria-label="Language"><option>English (US)</option><option>English (UK)</option></select></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Integrations -->
+          <section class="tab-panel stack" role="tabpanel" id="s-integrations" aria-labelledby="t-integrations" hidden>
+            <div class="card" style="padding:var(--pad)"><h2 class="card-title">Integrations</h2><p class="card-subtitle">Connect Nimbus with the tools your team already uses.</p></div>
+            <div class="auto-grid" style="--min:250px" id="integrations"></div>
+          </section>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  const { esc, toast, store, setTheme, $, $$ } = App;
+
+  // Logo preview (local only)
+  $('#logo').addEventListener('change', e => { const f = e.target.files[0]; if (f) $('#logo-preview').innerHTML = `<img src="${URL.createObjectURL(f)}" alt="Company logo preview" style="width:100%;height:100%;object-fit:cover">`; });
+  $('#remove-logo').addEventListener('click', () => { $('#logo-preview').innerHTML = '<i class="ph ph-buildings"></i>'; $('#logo').value = ''; });
+
+  // Notifications matrix
+  const EVENTS = [['New order placed', 1, 1, 0], ['Payment received', 1, 0, 0], ['Invoice overdue', 1, 1, 1], ['Low stock alert', 1, 1, 0], ['Mentions & comments', 0, 1, 0], ['Leave requests', 1, 1, 0], ['Weekly performance report', 1, 0, 0]];
+  $('#notif-rows').innerHTML = EVENTS.map(([n, ...ch]) => `<tr><th scope="row">${n}</th>${ch.map((on, i) => `<td><input class="switch" type="checkbox" role="switch" ${on ? 'checked' : ''} aria-label="${['Email', 'Push', 'SMS'][i]} for ${n}"></td>`).join('')}</tr>`).join('');
+
+  // Password strength meter
+  const LABELS = ['Too weak', 'Weak', 'Fair', 'Strong', 'Very strong'], COLORS = ['var(--danger)', 'var(--danger)', 'var(--warning)', 'var(--success)', 'var(--success)'];
+  $('#pw-new').addEventListener('input', e => {
+    const v = e.target.value, score = !v ? -1 : [/.{10,}/, /[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter(r => r.test(v)).length - 1;
+    const bars = score < 0 ? 0 : Math.max(1, score);
+    $$('#strength span').forEach((s, i) => { s.style.background = i < bars ? COLORS[score] : ''; });
+    $('#strength-label').textContent = score < 0 ? 'Enter a new password' : `Strength: ${LABELS[Math.max(0, score)]}`;
+  });
+
+  $('#s-security').addEventListener('change', e => { if (e.target.dataset.note) toast(`${e.target.dataset.note} ${e.target.checked ? 'enabled' : 'disabled'}`, { type: 'info' }); });
+  const sessions = [['desktop', 'Chrome on Windows', 'Austin, US · This device', true], ['device-mobile', 'Safari on iPhone', 'Austin, US · 2 hours ago', false], ['laptop', 'Firefox on macOS', 'Berlin, DE · 3 days ago', false]];
+  const renderSessions = () => { $('#sessions').innerHTML = sessions.map(([i, n, meta, current], k) => `<li class="list-item"><span class="icon-tile sm tone-${current ? 'success' : 'neutral'}"><i class="ph ph-${i}"></i></span><span class="list-body"><span class="list-title">${n}${current ? ' <span class="badge tone-success">Current</span>' : ''}</span><span class="list-meta">${meta}</span></span>${current ? '' : `<button class="btn btn-ghost btn-sm" type="button" data-k="${k}">Sign out</button>`}</li>`).join(''); };
+  renderSessions();
+  $('#sessions').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) { const [s] = sessions.splice(+b.dataset.k, 1); renderSessions(); toast(`${s[1]} signed out`); } });
+  $('#signout-all').addEventListener('click', () => { sessions.splice(1); renderSessions(); toast('All other sessions were signed out'); });
+
+  // Appearance — wired to the real theme / sidebar / motion preferences
+  const themePref = store.get('theme') || 'system';
+  $(`#theme-options input[value="${themePref}"]`).checked = true;
+  $('#theme-options').addEventListener('change', e => { setTheme(e.target.value); toast(`Theme set to ${e.target.value}`, { type: 'info' }); });
+  $(`#sidebar-options input[value="${store.get('sidebar') === 'mini' ? 'mini' : 'full'}"]`).checked = true;
+  $('#sidebar-options').addEventListener('change', e => { document.documentElement.classList.toggle('sidebar-collapsed', e.target.value === 'mini'); store.set('sidebar', e.target.value); });
+  $('#motion').checked = store.get('motion') === 'reduce';
+  $('#motion').addEventListener('change', e => { store.set('motion', e.target.checked ? 'reduce' : ''); document.documentElement.classList.toggle('reduce-motion', e.target.checked); toast(e.target.checked ? 'Animations reduced' : 'Animations restored', { type: 'info' }); });
+
+  // Integrations
+  const INTEGRATIONS = [['Slack', 'slack-logo', 'Post order and deal alerts to channels.', true], ['Google Workspace', 'google-logo', 'Sync calendars, contacts and Drive files.', true], ['Dropbox', 'dropbox-logo', 'Attach files from Dropbox to records.', false],
+    ['GitHub', 'github-logo', 'Link issues to projects and tasks.', false], ['Microsoft Teams', 'microsoft-teams-logo', 'Get notifications in Teams chats.', false], ['Accounting sync', 'calculator', 'Push invoices and payments to your ledger.', true],
+    ['Zap automations', 'lightning', 'Connect 5,000+ apps with no code.', false], ['Webhooks', 'webhooks-logo', 'Send events to your own endpoints.', false]];
+  const renderIntegrations = () => { $('#integrations').innerHTML = INTEGRATIONS.map(([n, icon, d, on], i) => `
+    <article class="card integration"><div class="flex items-center justify-between"><span class="logo"><i class="ph ph-${icon}"></i></span><input class="switch" type="checkbox" role="switch" data-i="${i}" ${on ? 'checked' : ''} aria-label="Connect ${n}"></div>
+      <div><h3 class="fw-700">${n}</h3><p class="text-sm text-2">${d}</p></div>
+      <div class="flex justify-between items-center">${on ? '<span class="badge badge-dot tone-success">Connected</span>' : '<span class="badge">Not connected</span>'}<button class="btn btn-ghost btn-sm" type="button" onclick="App.toast('Opening ${n} settings…', { type: 'info' })">Configure</button></div></article>`).join(''); };
+  renderIntegrations();
+  $('#integrations').addEventListener('change', e => { const i = +e.target.dataset.i; INTEGRATIONS[i][3] = e.target.checked; renderIntegrations(); toast(`${INTEGRATIONS[i][0]} ${e.target.checked ? 'connected' : 'disconnected'}`); });
+</script>
+</body>
+</html>

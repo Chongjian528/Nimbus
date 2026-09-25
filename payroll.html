@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payroll · Nimbus Admin</title>
+  <meta name="description" content="Payroll — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>People</span><span aria-current="page">Payroll</span></nav>
+          <h1 class="page-title">Payroll</h1>
+          <p class="page-subtitle" id="period-label">Current pay period</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" type="button" onclick="App.toast('Payslips are being prepared as a ZIP file', { type: 'info' })"><i class="ph ph-download-simple"></i>Payslips</button>
+          <button class="btn btn-primary" type="button" id="run"><i class="ph ph-play-circle"></i>Run payroll</button>
+        </div>
+      </div>
+
+      <section class="card" aria-labelledby="run-title">
+        <div class="card-header"><div><h2 class="card-title" id="run-title">Pay run progress</h2><p class="card-subtitle" id="run-sub">Pay date is in 5 days</p></div><span class="badge badge-lg tone-warning" id="run-badge">In review</span></div>
+        <div class="card-body"><ol class="stepper horizontal" id="stepper"></ol></div>
+      </section>
+
+      <section class="row" aria-label="Payroll totals" id="kpis"></section>
+
+      <section class="row stretch">
+        <div class="card xl-8">
+          <div class="card-header"><div><h2 class="card-title">Payroll cost</h2><p class="card-subtitle">Gross pay per month, last 12 months</p></div></div>
+          <div class="card-body"><div id="cost-chart" class="chart" style="--chart-h:280px"></div></div>
+        </div>
+        <div class="card xl-4">
+          <div class="card-header"><div><h2 class="card-title">Cost by department</h2><p class="card-subtitle">This pay period</p></div></div>
+          <div class="card-body stack-sm" id="by-dept"></div>
+        </div>
+      </section>
+
+      <section class="card" id="payroll" aria-label="Employee pay">
+        <div class="table-toolbar">
+          <h2 class="card-title" style="margin-right:auto">Employee pay</h2>
+          <div class="input-icon"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" placeholder="Search employee…" aria-label="Search employees" data-table-search></div>
+          <select class="select" data-table-filter="department" aria-label="Filter by department" id="dept"><option value="all">All departments</option></select>
+        </div>
+        <div class="bulk-bar" data-table-bulk hidden>
+          <span><span data-bulk-count>0</span> selected</span><span class="spacer"></span>
+          <button class="btn btn-sm btn-secondary" type="button" id="bulk-hold"><i class="ph ph-pause"></i>Hold</button>
+          <button class="btn btn-sm btn-primary" type="button" id="bulk-approve"><i class="ph ph-check"></i>Approve</button>
+        </div>
+        <div class="table-wrap"><table class="table table-cards"></table></div>
+        <div class="table-footer"><span data-table-info></span><nav class="pagination" aria-label="Pagination" data-table-pager></nav></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/plugins/apexcharts/apexcharts.min.js"></script>
+<script>
+  const { fmt, esc, avatar, badge, table, chart, toast, confirm, $ } = App;
+  const now = new Date(), start = new Date(now.getFullYear(), now.getMonth(), 1), end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  $('#period-label').textContent = `Pay period ${fmt.day(start)} – ${fmt.date(end)} · Monthly`;
+
+  const rows = DB.employees.map((e, i) => {
+    const base = Math.round(e.salary / 12), bonus = i % 4 === 0 ? Math.round(base * 0.1) : 0, deductions = Math.round((base + bonus) * 0.27);
+    return { id: e.id, name: e.name, role: e.role, department: e.department, base, bonus, deductions, net: base + bonus - deductions, status: i % 7 === 3 ? 'On hold' : i < 20 ? 'Approved' : 'Pending' };
+  });
+  let stage = 1;
+  const STEPS = [['Prepare', 'clipboard-text'], ['Review', 'magnifying-glass'], ['Approve', 'seal-check'], ['Pay', 'bank']];
+  function renderRun() {
+    $('#stepper').innerHTML = STEPS.map(([n, i], k) => `<li class="step ${k < stage ? 'is-done' : k === stage ? 'is-current' : ''}"${k === stage ? ' aria-current="step"' : ''}><span class="step-icon"><i class="ph ph-${k < stage ? 'check' : i}"></i></span><div><p class="step-title">${n}</p><p class="step-meta">${k < stage ? 'Completed' : k === stage ? 'In progress' : 'Up next'}</p></div></li>`).join('');
+    const labels = ['Preparing', 'In review', 'Awaiting approval', 'Paid'];
+    $('#run-badge').textContent = labels[Math.min(stage, 3)];
+    $('#run-badge').className = `badge badge-lg tone-${stage >= 3 ? 'success' : 'warning'}`;
+    $('#run').disabled = stage >= 3;
+    $('#run-sub').textContent = stage >= 3 ? `Paid on ${fmt.date(new Date())}` : 'Pay date is in 5 days';
+  }
+  function renderKpis() {
+    const d = list.data, s = k => d.reduce((t, r) => t + r[k], 0);
+    $('#kpis').innerHTML = [['Gross pay', fmt.money(s('base') + s('bonus')), 'money', 'primary'], ['Taxes & deductions', fmt.money(s('deductions')), 'scales', 'warning'], ['Net pay', fmt.money(s('net')), 'wallet', 'success'], ['Employees', `${d.filter(r => r.status === 'Approved').length} / ${d.length} approved`, 'users-three', 'violet']]
+      .map(([k, v, i, t]) => `<article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-${t}"><i class="ph ph-${i}"></i></span><div class="grow"><h2 class="stat-label">${k}</h2><p class="stat-value" style="font-size:1.25rem">${v}</p></div></article>`).join('');
+  }
+
+  $('#dept').insertAdjacentHTML('beforeend', [...new Set(rows.map(r => r.department))].map(d => `<option>${d}</option>`).join(''));
+  const list = table('#payroll', {
+    data: rows, caption: 'Employee pay', selectable: true, pageSize: 10, rowClick: false, sort: ['name', 'asc'], search: ['name', 'role', 'department'],
+    columns: [
+      { key: 'name', label: 'Employee', sortable: true, cls: 'cell-main', render: r => `<div class="cell-user">${avatar(r.name, 'avatar-sm')}<div><strong>${esc(r.name)}</strong><small>${esc(r.role)}</small></div></div>` },
+      { key: 'department', label: 'Department', sortable: true },
+      { key: 'base', label: 'Base', sortable: true, cls: 'num', render: r => fmt.money(r.base) },
+      { key: 'bonus', label: 'Bonus', sortable: true, cls: 'col-xl num', render: r => r.bonus ? `<span class="text-success fw-600">+${fmt.money(r.bonus)}</span>` : '—' },
+      { key: 'deductions', label: 'Deductions', sortable: true, cls: 'col-xl num', render: r => `−${fmt.money(r.deductions)}` },
+      { key: 'net', label: 'Net pay', sortable: true, cls: 'num', render: r => `<span class="fw-700">${fmt.money(r.net)}</span>` },
+      { key: 'status', label: 'Status', sortable: true, render: r => badge(r.status) },
+    ],
+  });
+  renderRun(); renderKpis();
+
+  const setStatus = (status) => { const ids = list.selected; ids.forEach(id => { list.find(id).status = status; }); list.clearSelection(); renderKpis(); toast(`${ids.length} employee${ids.length > 1 ? 's' : ''} ${status === 'On hold' ? 'put on hold' : 'approved'}`); };
+  $('#bulk-approve').addEventListener('click', () => setStatus('Approved'));
+  $('#bulk-hold').addEventListener('click', () => setStatus('On hold'));
+  $('#run').addEventListener('click', async () => {
+    const net = rows.filter(r => r.status !== 'On hold').reduce((t, r) => t + r.net, 0);
+    if (!await confirm({ title: stage < 2 ? 'Submit for approval?' : 'Pay employees now?', text: `${fmt.money(net)} will be paid to ${rows.filter(r => r.status !== 'On hold').length} employees. Held payments are skipped.`, confirm: stage < 2 ? 'Submit' : 'Pay now', tone: 'primary', icon: 'bank' })) return;
+    stage = stage < 2 ? 2 : 4;
+    if (stage === 4) rows.forEach(r => { if (r.status !== 'On hold') r.status = 'Paid'; });
+    list.render(); renderRun(); renderKpis();
+    toast(stage === 4 ? 'Payroll sent to the bank — employees will be paid on the pay date.' : 'Pay run submitted for approval', { title: 'Payroll' });
+  });
+
+  chart('#cost-chart', {
+    chart: { type: 'bar', height: 280 },
+    series: [{ name: 'Gross pay', data: DB.months.map((_, i) => 188000 + i * 2100 + (i % 3) * 3400) }],
+    colors: ['--chart-1'],
+    plotOptions: { bar: { columnWidth: '44%' } },
+    xaxis: { categories: DB.months },
+    yaxis: { labels: { formatter: v => fmt.cash(v) } },
+    tooltip: { y: { formatter: v => fmt.money(v) } },
+    table: { format: v => fmt.money(v) },
+  });
+  const byDept = {};
+  rows.forEach(r => { byDept[r.department] = (byDept[r.department] || 0) + r.base + r.bonus; });
+  const total = Object.values(byDept).reduce((a, b) => a + b, 0);
+  $('#by-dept').innerHTML = Object.entries(byDept).sort((a, b) => b[1] - a[1]).map(([d, v]) => `
+    <div class="progress-row"><div class="label-row"><span class="fw-600">${d}</span><span>${fmt.cash(v)}</span></div>
+    <progress class="progress" value="${Math.round(v / total * 100)}" max="40" aria-label="${d} share of payroll"></progress></div>`).join('');
+</script>
+</body>
+</html>

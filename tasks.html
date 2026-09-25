@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task Board · Nimbus Admin</title>
+  <meta name="description" content="Task Board — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Workspace</span><span aria-current="page">Task board</span></nav>
+          <h1 class="page-title">Task board</h1>
+          <p class="page-subtitle">Drag tasks between columns, or open a task to edit it.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-secondary" href="projects.html"><i class="ph ph-folder-simple"></i>Projects</a>
+          <button class="btn btn-primary" type="button" id="add-task"><i class="ph ph-plus"></i>New task</button>
+        </div>
+      </div>
+
+      <div class="flex wrap items-center gap-3">
+        <div class="input-icon" style="flex:0 1 280px"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" id="q" placeholder="Filter tasks…" aria-label="Filter tasks"></div>
+        <div class="flex wrap gap-2" id="people" aria-label="Filter by assignee"></div>
+        <div class="flex wrap gap-2 ml-auto" id="priority" aria-label="Filter by priority">
+          <button class="chip" type="button" data-p="High" aria-pressed="false"><span class="dot" style="--c:var(--danger)"></span>High</button>
+          <button class="chip" type="button" data-p="Medium" aria-pressed="false"><span class="dot" style="--c:var(--warning)"></span>Medium</button>
+          <button class="chip" type="button" data-p="Low" aria-pressed="false"><span class="dot" style="--c:var(--success)"></span>Low</button>
+        </div>
+      </div>
+
+      <section class="kanban" id="board" aria-label="Task columns"></section>
+
+      <dialog class="modal" id="task-modal" aria-labelledby="task-title">
+        <form class="modal-form" data-validate novalidate id="task-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="task-title">Task</h2><p class="modal-desc" id="task-desc"></p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body form-grid cols-2">
+            <input type="hidden" name="id">
+            <div class="field span-all"><label class="label" for="t-title">Title <span class="req">*</span></label><input class="input" id="t-title" name="title" required></div>
+            <div class="field"><label class="label" for="t-status">Column</label><select class="select" id="t-status" name="status"></select></div>
+            <div class="field"><label class="label" for="t-priority">Priority</label><select class="select" id="t-priority" name="priority"><option>High</option><option>Medium</option><option>Low</option></select></div>
+            <div class="field"><label class="label" for="t-due">Due date</label><input class="input" id="t-due" name="due" type="date" required></div>
+            <div class="field"><label class="label" for="t-assignee">Assignee</label><select class="select" id="t-assignee" name="assignee"></select></div>
+            <div class="field span-all"><label class="label" for="t-tags">Tags</label><input class="input" id="t-tags" name="tags" placeholder="Design, Frontend"><p class="hint">Separate with commas.</p></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-soft-danger" type="button" id="delete-task" style="margin-right:auto"><i class="ph ph-trash"></i>Delete</button>
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Save task</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/plugins/sortablejs/Sortable.min.js"></script>
+<script>
+  const { fmt, esc, avatars, toast, openModal, confirm, $, $$ } = App;
+  const tasks = DB.tasks;
+  const COLS = [['todo', 'To do', '--chart-7'], ['progress', 'In progress', '--chart-1'], ['review', 'In review', '--chart-4'], ['done', 'Done', '--chart-3']];
+  const TAG_TONE = { Design: 'pink', Frontend: 'primary', Backend: 'violet', Bug: 'danger', DevOps: 'info', Research: 'success', Marketing: 'warning', Ops: 'info', QA: 'neutral', Finance: 'success' };
+  const people = [...new Set(tasks.flatMap(t => t.assignees))].slice(0, 6);
+  const filters = { q: '', person: null, priority: null };
+
+  $('#people').innerHTML = people.map(n => `<button class="chip" type="button" data-person="${esc(n)}" aria-pressed="false" style="padding-left:4px">${App.avatar(n, 'avatar-xs')}${esc(n.split(' ')[0])}</button>`).join('');
+  $('#t-status').innerHTML = COLS.map(([id, n]) => `<option value="${id}">${n}</option>`).join('');
+  $('#t-assignee').innerHTML = DB.employees.map(e => `<option>${esc(e.name)}</option>`).join('');
+
+  const visible = t => (!filters.q || t.title.toLowerCase().includes(filters.q)) && (!filters.person || t.assignees.includes(filters.person)) && (!filters.priority || t.priority === filters.priority);
+  const cardHTML = t => {
+    const days = Math.round((new Date(t.due) - Date.now()) / 864e5), overdue = days < 0 && t.status !== 'done';
+    return `<article class="kanban-card" data-id="${t.id}">
+      <div class="flex wrap gap-1">${t.tags.map(g => `<span class="tag tone-${TAG_TONE[g] || 'neutral'}">${esc(g)}</span>`).join('')}</div>
+      <h3><button class="link-btn" type="button">${esc(t.title)}</button></h3>
+      <div class="progress-row"><div class="label-row text-xs"><span class="text-3">Subtasks</span><span>${t.subtasks.done}/${t.subtasks.total}</span></div><progress class="progress sm ${t.status === 'done' ? 'bar-success' : ''}" value="${t.subtasks.done}" max="${t.subtasks.total}" aria-label="Subtasks completed"></progress></div>
+      <div class="meta">${avatars(t.assignees, 3, 'avatar-xs')}<span class="badge badge-dot tone-${App.statusTone(t.priority)}">${t.priority}</span></div>
+      <div class="meta"><span class="${overdue ? 'text-danger fw-600' : ''}"><i class="ph ph-calendar-blank"></i>${overdue ? `${-days}d overdue` : fmt.day(t.due)}</span><span><i class="ph ph-chat-circle"></i>${t.comments}<i class="ph ph-paperclip" style="margin-left:6px"></i>${t.attachments}</span></div>
+    </article>`;
+  };
+  function render() {
+    $('#board').innerHTML = COLS.map(([id, name, c]) => {
+      const items = tasks.filter(t => t.status === id && visible(t));
+      return `<div class="kanban-col" role="region" aria-label="${name}">
+        <div class="kanban-head"><span class="dot" style="--c:var(${c})"></span><h2 class="kanban-title">${name}</h2><span class="badge">${items.length}</span></div>
+        <div class="kanban-list" data-status="${id}">${items.map(cardHTML).join('')}</div>
+        <button class="btn kanban-add" type="button" data-add="${id}"><i class="ph ph-plus"></i>Add task</button></div>`;
+    }).join('');
+    $$('.kanban-list').forEach(el => new Sortable(el, {
+      group: 'tasks', animation: 180, delay: 150, delayOnTouchOnly: true, ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen', dragClass: 'sortable-drag',
+      onEnd: e => {
+        if (e.from === e.to) return;
+        const t = tasks.find(x => x.id === e.item.dataset.id);
+        t.status = e.to.dataset.status;
+        if (t.status === 'done') t.subtasks.done = t.subtasks.total;
+        render();
+        toast(`Moved to ${COLS.find(c => c[0] === t.status)[1]}`, { title: t.title });
+      },
+    }));
+  }
+  render();
+
+  $('#q').addEventListener('input', e => { filters.q = e.target.value.trim().toLowerCase(); render(); });
+  $('#people').addEventListener('click', e => { const b = e.target.closest('[data-person]'); if (!b) return; filters.person = filters.person === b.dataset.person ? null : b.dataset.person; $$('#people .chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.person === filters.person))); render(); });
+  $('#priority').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b) return; filters.priority = filters.priority === b.dataset.p ? null : b.dataset.p; $$('#priority .chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.p === filters.priority))); render(); });
+
+  function openTask(t, status) {
+    const f = $('#task-form');
+    f.reset();
+    f.elements.id.value = t?.id || '';
+    $('#task-title').textContent = t ? t.title : 'New task';
+    $('#task-desc').textContent = t ? `${t.id} · ${t.project}` : 'Add a task to the board.';
+    $('#delete-task').hidden = !t;
+    f.elements.title.value = t?.title || '';
+    f.elements.status.value = t?.status || status || 'todo';
+    f.elements.priority.value = t?.priority || 'Medium';
+    f.elements.due.value = (t?.due || new Date(Date.now() + 7 * 864e5).toISOString()).slice(0, 10);
+    f.elements.assignee.value = t?.assignees[0] || App.me.name;
+    f.elements.tags.value = t?.tags.join(', ') || '';
+    openModal('#task-modal');
+  }
+  $('#board').addEventListener('click', e => {
+    const add = e.target.closest('[data-add]');
+    if (add) return openTask(null, add.dataset.add);
+    const card = e.target.closest('.kanban-card');
+    if (card) openTask(tasks.find(t => t.id === card.dataset.id));
+  });
+  $('#add-task').addEventListener('click', () => openTask());
+  $('#task-form').addEventListener('valid', e => {
+    const d = e.detail, tags = d.tags.split(',').map(s => s.trim()).filter(Boolean);
+    const fields = { title: d.title, status: d.status, priority: d.priority, due: new Date(d.due + 'T12:00').toISOString(), tags };
+    const t = tasks.find(x => x.id === d.id);
+    if (t) { Object.assign(t, fields); if (!t.assignees.includes(d.assignee)) t.assignees.unshift(d.assignee); }
+    else tasks.push({ id: `TSK-${1300 + tasks.length}`, ...fields, project: 'General', assignees: [d.assignee], comments: 0, attachments: 0, subtasks: { done: 0, total: 1 } });
+    render(); toast(t ? 'Task updated' : 'Task created', { title: d.title });
+  });
+  $('#delete-task').addEventListener('click', async () => {
+    const t = tasks.find(x => x.id === $('#task-form').elements.id.value);
+    $('#task-modal').close();
+    if (await confirm({ title: 'Delete task?', text: `“${t.title}” will be removed from the board.`, confirm: 'Delete task' })) { tasks.splice(tasks.indexOf(t), 1); render(); toast('Task deleted'); }
+  });
+</script>
+</body>
+</html>

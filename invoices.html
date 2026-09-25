@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invoices · Nimbus Admin</title>
+  <meta name="description" content="Invoices — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Sales</span><span aria-current="page">Invoices</span></nav>
+          <h1 class="page-title">Invoices</h1>
+          <p class="page-subtitle">Bill clients, follow up on late payments and track receivables.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" type="button" data-action="print"><i class="ph ph-download-simple"></i>Export</button>
+          <button class="btn btn-primary" type="button" data-modal="#invoice-modal"><i class="ph ph-plus"></i>Create invoice</button>
+        </div>
+      </div>
+
+      <section class="row" aria-label="Receivables summary" id="kpis"></section>
+
+      <section class="card" id="invoices" aria-label="Invoice list">
+        <div class="table-toolbar">
+          <div class="input-icon"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" placeholder="Search invoice or client…" aria-label="Search invoices" data-table-search></div>
+          <div class="segmented" data-segmented id="status-seg" aria-label="Filter by status">
+            <button type="button" aria-pressed="true" data-value="all">All</button>
+            <button type="button" aria-pressed="false" data-value="Paid">Paid</button>
+            <button type="button" aria-pressed="false" data-value="Pending">Pending</button>
+            <button type="button" aria-pressed="false" data-value="Overdue">Overdue</button>
+            <button type="button" aria-pressed="false" data-value="Draft">Draft</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table class="table table-cards"></table></div>
+        <div class="table-footer"><span data-table-info></span><nav class="pagination" aria-label="Pagination" data-table-pager></nav></div>
+      </section>
+
+      <section class="row stretch">
+        <div class="card xl-7">
+          <div class="card-header"><div><h2 class="card-title">Receivables aging</h2><p class="card-subtitle">Unpaid balance by days past due</p></div></div>
+          <div class="card-body"><div id="aging-chart" class="chart" style="--chart-h:260px"></div></div>
+        </div>
+        <div class="card xl-5">
+          <div class="card-header"><div><h2 class="card-title">Largest open balances</h2><p class="card-subtitle">Clients to follow up with</p></div></div>
+          <div class="card-body"><ul class="list" id="open-balances"></ul></div>
+        </div>
+      </section>
+
+      <dialog class="modal" id="invoice-modal" aria-labelledby="inv-title">
+        <form class="modal-form" data-validate novalidate id="invoice-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="inv-title">Create invoice</h2><p class="modal-desc">Draft invoices can be edited before sending.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-grid cols-2">
+              <div class="field span-all"><label class="label" for="i-client">Client <span class="req">*</span></label><select class="select" id="i-client" name="client" required data-error="Choose a client."><option value="">Select a client…</option></select></div>
+              <div class="field span-all"><label class="label" for="i-desc">Description <span class="req">*</span></label><input class="input" id="i-desc" name="desc" required placeholder="e.g. Implementation services — October"></div>
+              <div class="field"><label class="label" for="i-amount">Amount <span class="req">*</span></label><div class="input-group"><span class="addon">$</span><input class="input" id="i-amount" name="amount" type="number" min="1" step="0.01" required inputmode="decimal"></div></div>
+              <div class="field"><label class="label" for="i-terms">Payment terms</label><select class="select" id="i-terms" name="terms"><option value="15">Net 15</option><option value="30" selected>Net 30</option><option value="60">Net 60</option></select></div>
+              <div class="field span-all"><label class="check"><input type="checkbox" name="send">Send to client immediately</label></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Create invoice</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/plugins/apexcharts/apexcharts.min.js"></script>
+<script>
+  const { fmt, esc, avatar, badge, rowMenu, table, chart, toast, confirm, $ } = App;
+  const days = d => Math.round((new Date(d) - Date.now()) / 864e5);
+
+  const list = table('#invoices', {
+    data: [...DB.invoices], caption: 'Invoices', sort: ['issued', 'desc'], search: ['id', 'company', 'customer'],
+    columns: [
+      { key: 'id', label: 'Invoice', sortable: true, cls: 'cell-main', render: i => `<a class="fw-700 nowrap" href="invoice-detail.html?id=${i.id}">${i.id}</a><span class="cell-sub">${i.lines.length} line item${i.lines.length > 1 ? 's' : ''}</span>` },
+      { key: 'company', label: 'Client', sortable: true, render: i => `<div class="cell-user">${avatar(i.company, 'avatar-sm')}<div><strong>${esc(i.company)}</strong><small>${esc(i.customer)}</small></div></div>` },
+      { key: 'issued', label: 'Issued', sortable: true, cls: 'col-xl', render: i => `<span class="nowrap">${fmt.date(i.issued)}</span>` },
+      { key: 'due', label: 'Due', sortable: true, render: i => {
+        const d = days(i.due), open = i.status === 'Pending' || i.status === 'Overdue';
+        return `<span class="cell-title fw-500">${fmt.date(i.due)}</span>${open ? `<span class="cell-sub ${d < 0 ? 'text-danger' : ''}">${d < 0 ? `${-d} days overdue` : `in ${d} days`}</span>` : ''}`;
+      } },
+      { key: 'total', label: 'Amount', sortable: true, cls: 'num', render: i => `<span class="fw-700">${fmt.money(i.total, 2)}</span>` },
+      { key: 'status', label: 'Status', sortable: true, render: i => badge(i.status) },
+      { label: '', cls: 'cell-actions', render: i => rowMenu([
+        { label: 'View invoice', icon: 'eye', href: `invoice-detail.html?id=${i.id}` },
+        { label: 'Send reminder', icon: 'bell-ringing', action: 'remind' },
+        { label: 'Mark as paid', icon: 'check-circle', action: 'paid' },
+        '-', { label: 'Void invoice', icon: 'prohibit', action: 'void', danger: true },
+      ], `Actions for ${i.id}`) },
+    ],
+  });
+  $('#status-seg').addEventListener('segment', e => list.filter('status', e.detail));
+
+  function renderKpis() {
+    const all = list.data, sum = s => all.filter(i => s.includes(i.status)).reduce((t, i) => t + i.total, 0);
+    const n = s => all.filter(i => i.status === s).length;
+    $('#kpis').innerHTML = [
+      ['Outstanding', fmt.money(sum(['Pending', 'Overdue'])), `${n('Pending') + n('Overdue')} invoices`, 'hourglass-medium', 'warning'],
+      ['Overdue', fmt.money(sum(['Overdue'])), `${n('Overdue')} invoices`, 'warning-circle', 'danger'],
+      ['Paid (90 days)', fmt.money(sum(['Paid'])), `${n('Paid')} invoices`, 'check-circle', 'success'],
+      ['Drafts', n('Draft'), 'Ready to send', 'note-pencil', 'neutral'],
+    ].map(([k, v, sub, icon, tone]) => `<article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-${tone}"><i class="ph ph-${icon}"></i></span><div class="grow"><h2 class="stat-label">${k}</h2><p class="stat-value">${v}</p><p class="text-xs text-3">${sub}</p></div></article>`).join('');
+  }
+
+  $('#invoices').addEventListener('click', async e => {
+    const b = e.target.closest('[data-row-action]');
+    if (!b) return;
+    const inv = list.find(b.closest('tr').dataset.id), act = b.dataset.rowAction;
+    if (act === 'remind') toast(`Reminder sent to ${inv.email}`, { title: inv.id, type: 'info' });
+    if (act === 'paid') { inv.status = 'Paid'; list.render(); renderKpis(); toast(`${inv.id} marked as paid`); }
+    if (act === 'void' && await confirm({ title: `Void ${inv.id}?`, text: 'The invoice will be cancelled and removed from receivables.', confirm: 'Void invoice' })) { list.remove([inv.id]); renderKpis(); toast(`${inv.id} voided`, { type: 'warning' }); }
+  });
+
+  renderKpis();
+
+  // Create invoice
+  $('#i-client').insertAdjacentHTML('beforeend', DB.customers.map(c => `<option value="${c.id}">${esc(c.company)} (${esc(c.name)})</option>`).join(''));
+  $('#invoice-form').addEventListener('valid', e => {
+    const d = e.detail, c = DB.find('customers', d.client), amount = +d.amount;
+    const n = list.data.reduce((m, i) => Math.max(m, +i.id.slice(-4)), 0) + 1;
+    const id = `INV-${new Date().getFullYear()}-${String(n).padStart(4, '0')}`;
+    list.add({ id, customerId: c.id, customer: c.name, company: c.company, email: c.email, city: c.city, issued: new Date().toISOString(),
+      due: new Date(Date.now() + d.terms * 864e5).toISOString(), lines: [{ desc: d.desc, qty: 1, rate: amount }], subtotal: amount, tax: 0, total: amount, status: d.send ? 'Pending' : 'Draft' });
+    renderKpis();
+    toast(d.send ? `${id} sent to ${c.email}` : `${id} saved as draft`, { title: 'Invoice created' });
+  });
+
+  // Aging (single series, ordered buckets)
+  const open = DB.invoices.filter(i => i.status === 'Pending' || i.status === 'Overdue');
+  const buckets = [['Current', 0, Infinity], ['1–30 days', -30, 0], ['31–60 days', -60, -30], ['61–90 days', -90, -60], ['90+ days', -Infinity, -90]];
+  const aging = buckets.map(([, lo, hi], k) => open.filter(i => { const d = days(i.due); return d >= lo && d < hi; }).reduce((t, i) => t + i.total, 0) + [0, 0, 18400, 6200, 2900][k]); // + older balances not in the sample list
+  chart('#aging-chart', {
+    chart: { type: 'bar', height: 260 },
+    series: [{ name: 'Balance', data: aging }],
+    colors: ['--chart-2'],
+    plotOptions: { bar: { columnWidth: '44%', dataLabels: { position: 'top' } } },
+    dataLabels: { enabled: true, offsetY: -22, formatter: v => fmt.cash(v), style: { colors: ['--text-2'], fontWeight: 600 } },
+    xaxis: { categories: buckets.map(b => b[0]) },
+    yaxis: { min: 0, max: App.niceMax(Math.max(...aging) * 1.2), tickAmount: 4, labels: { formatter: v => fmt.cash(v) } },
+    tooltip: { y: { formatter: v => fmt.money(v, 2) } },
+    table: { format: v => fmt.money(v, 2) },
+  });
+
+  const byClient = {};
+  open.forEach(i => { byClient[i.company] = (byClient[i.company] || 0) + i.total; });
+  $('#open-balances').innerHTML = Object.entries(byClient).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([co, v]) => `
+    <li class="list-item">${avatar(co, 'avatar-sm')}<span class="list-body"><span class="list-title">${esc(co)}</span><span class="list-meta">${open.filter(i => i.company === co).length} open invoice(s)</span></span>
+    <span class="list-end">${fmt.money(v, 2)}</span><button class="btn btn-ghost btn-icon btn-sm" type="button" aria-label="Send reminder to ${esc(co)}" data-remind="${esc(co)}"><i class="ph ph-bell-ringing"></i></button></li>`).join('');
+  $('#open-balances').addEventListener('click', e => { const b = e.target.closest('[data-remind]'); if (b) toast('Payment reminder sent', { title: b.dataset.remind, type: 'info' }); });
+</script>
+</body>
+</html>

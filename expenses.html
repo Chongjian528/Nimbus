@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expenses · Nimbus Admin</title>
+  <meta name="description" content="Expenses — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Finance</span><span aria-current="page">Expenses</span></nav>
+          <h1 class="page-title">Expenses</h1>
+          <p class="page-subtitle">Review claims, approve reimbursements and track budgets.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" type="button" data-action="print"><i class="ph ph-download-simple"></i>Export</button>
+          <button class="btn btn-primary" type="button" data-modal="#expense-modal"><i class="ph ph-plus"></i>Submit expense</button>
+        </div>
+      </div>
+
+      <section class="row" aria-label="Expense summary" id="kpis"></section>
+
+      <section class="row">
+        <div class="xl-8 stack">
+          <section class="card" id="expenses" aria-label="Expense claims">
+            <div class="tabs" role="tablist" aria-label="Filter by status" id="tabs">
+              <button class="tab" role="tab" type="button" data-value="all" aria-selected="true">All</button>
+              <button class="tab" role="tab" type="button" data-value="Pending" aria-selected="false" tabindex="-1">Needs approval</button>
+              <button class="tab" role="tab" type="button" data-value="Approved" aria-selected="false" tabindex="-1">Approved</button>
+              <button class="tab" role="tab" type="button" data-value="Reimbursed" aria-selected="false" tabindex="-1">Reimbursed</button>
+              <button class="tab" role="tab" type="button" data-value="Rejected" aria-selected="false" tabindex="-1">Rejected</button>
+            </div>
+            <div class="table-toolbar">
+              <div class="input-icon"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" placeholder="Search expenses…" aria-label="Search expenses" data-table-search></div>
+              <select class="select" data-table-filter="category" aria-label="Filter by category" id="cat-filter"><option value="all">All categories</option></select>
+            </div>
+            <div class="bulk-bar" data-table-bulk hidden>
+              <span><span data-bulk-count>0</span> selected</span><span class="spacer"></span>
+              <button class="btn btn-sm btn-soft-danger" type="button" id="bulk-reject">Reject</button>
+              <button class="btn btn-sm btn-success" type="button" id="bulk-approve"><i class="ph ph-check"></i>Approve</button>
+            </div>
+            <div class="table-wrap"><table class="table table-cards"></table></div>
+            <div class="table-footer"><span data-table-info></span><nav class="pagination" aria-label="Pagination" data-table-pager></nav></div>
+          </section>
+        </div>
+        <div class="xl-4 stack">
+          <section class="card">
+            <div class="card-header"><div><h2 class="card-title">Budgets</h2><p class="card-subtitle">Spent this quarter vs. budget</p></div></div>
+            <div class="card-body stack-sm" id="budgets"></div>
+          </section>
+          <section class="card">
+            <div class="card-header"><div><h2 class="card-title">Monthly spend</h2><p class="card-subtitle">Approved claims</p></div></div>
+            <div class="card-body"><div id="trend-chart" class="chart" style="--chart-h:200px"></div></div>
+          </section>
+        </div>
+      </section>
+
+      <dialog class="modal" id="expense-modal" aria-labelledby="exp-title">
+        <form class="modal-form" data-validate novalidate id="expense-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="exp-title">Submit expense</h2><p class="modal-desc">Claims above $500 need a manager’s approval.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body form-grid cols-2">
+            <div class="field span-all"><label class="label" for="e-desc">Description <span class="req">*</span></label><input class="input" id="e-desc" name="description" required placeholder="e.g. Client lunch — Bluepeak Labs"></div>
+            <div class="field"><label class="label" for="e-amount">Amount <span class="req">*</span></label><div class="input-group"><span class="addon">$</span><input class="input" id="e-amount" name="amount" type="number" min="0.01" step="0.01" required inputmode="decimal"></div></div>
+            <div class="field"><label class="label" for="e-date">Date <span class="req">*</span></label><input class="input" id="e-date" name="date" type="date" required></div>
+            <div class="field span-all"><label class="label" for="e-cat">Category</label><select class="select" id="e-cat" name="category"></select></div>
+            <div class="field span-all"><label class="label" for="e-receipt">Receipt</label><input class="input" id="e-receipt" name="receipt" type="file" accept="image/*,.pdf"><p class="hint">JPG, PNG or PDF.</p></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Submit for approval</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/plugins/apexcharts/apexcharts.min.js"></script>
+<script>
+  const { fmt, esc, avatar, badge, rowMenu, table, chart, toast, $, me } = App;
+  const catMeta = Object.fromEntries(DB.budgets.map(b => [b.category, b]));
+  $('#cat-filter').insertAdjacentHTML('beforeend', DB.budgets.map(b => `<option>${b.category}</option>`).join(''));
+  $('#e-cat').innerHTML = DB.budgets.map(b => `<option>${b.category}</option>`).join('');
+  $('#e-date').defaultValue = DB.ymd(new Date());
+
+  function renderKpis() {
+    const d = list.data, total = s => d.filter(e => s.includes(e.status)).reduce((t, e) => t + e.amount, 0);
+    $('#kpis').innerHTML = [
+      ['Awaiting approval', fmt.money(total(['Pending']), 2), `${d.filter(e => e.status === 'Pending').length} claims`, 'hourglass-medium', 'warning'],
+      ['Approved', fmt.money(total(['Approved']), 2), 'To be reimbursed', 'check-circle', 'success'],
+      ['Reimbursed', fmt.money(total(['Reimbursed']), 2), 'Last 45 days', 'hand-coins', 'primary'],
+      ['Missing receipts', d.filter(e => !e.receipt).length, 'Follow up needed', 'receipt-x', 'danger'],
+    ].map(([k, v, sub, i, t]) => `<article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-${t}"><i class="ph ph-${i}"></i></span><div class="grow"><h2 class="stat-label">${k}</h2><p class="stat-value">${v}</p><p class="text-xs text-3">${sub}</p></div></article>`).join('');
+  }
+
+  const list = table('#expenses', {
+    data: [...DB.expenses], caption: 'Expense claims', selectable: true, sort: ['date', 'desc'], rowClick: false,
+    search: ['description', 'employee', 'category', 'id'],
+    columns: [
+      { key: 'description', label: 'Expense', sortable: true, cls: 'cell-main', render: e => `<div class="cell-user"><span class="icon-tile sm tone-${e.tone}"><i class="ph ph-${e.icon}"></i></span><div><strong>${esc(e.description)}</strong><small>${e.id} · ${esc(e.category)}</small></div></div>` },
+      { key: 'employee', label: 'Submitted by', sortable: true, render: e => `<div class="flex items-center gap-2">${avatar(e.employee, 'avatar-xs')}<span class="nowrap">${esc(e.employee)}</span></div>` },
+      { key: 'date', label: 'Date', sortable: true, render: e => `<span class="nowrap">${fmt.date(e.date)}</span>` },
+      { key: 'receipt', label: 'Receipt', cls: 'col-xl', render: e => e.receipt ? '<span class="badge tone-success"><i class="ph ph-paperclip"></i>Attached</span>' : '<span class="badge tone-danger"><i class="ph ph-warning"></i>Missing</span>' },
+      { key: 'amount', label: 'Amount', sortable: true, cls: 'num', render: e => `<span class="fw-700">${fmt.money(e.amount, 2)}</span>` },
+      { key: 'status', label: 'Status', sortable: true, render: e => badge(e.status) },
+      { label: '', cls: 'cell-actions', render: e => e.status === 'Pending'
+        ? `<div class="flex gap-1"><button class="btn btn-soft-success btn-icon btn-sm" type="button" data-act="Approved" aria-label="Approve ${esc(e.description)}" data-tooltip="Approve"><i class="ph ph-check"></i></button><button class="btn btn-soft-danger btn-icon btn-sm" type="button" data-act="Rejected" aria-label="Reject ${esc(e.description)}" data-tooltip="Reject"><i class="ph ph-x"></i></button></div>`
+        : rowMenu([{ label: 'View receipt', icon: 'receipt', action: 'receipt' }, { label: 'Download PDF', icon: 'file-pdf', action: 'pdf' }], `Actions for ${e.description}`) },
+    ],
+  });
+  renderKpis();
+  $('#tabs').addEventListener('tabchange', e => list.filter('status', e.detail));
+
+  const setStatus = (ids, status) => { ids.forEach(id => { list.find(id).status = status; }); list.clearSelection(); renderKpis(); toast(`${ids.length} claim${ids.length > 1 ? 's' : ''} ${status.toLowerCase()}`, { type: status === 'Rejected' ? 'warning' : 'success' }); };
+  $('#expenses').addEventListener('click', e => {
+    const a = e.target.closest('[data-act]');
+    if (a) setStatus([a.closest('tr').dataset.id], a.dataset.act);
+    const r = e.target.closest('[data-row-action]');
+    if (r) toast(r.dataset.rowAction === 'pdf' ? 'Expense report downloaded' : 'Receipt opened in a new tab', { type: 'info' });
+  });
+  $('#bulk-approve').addEventListener('click', () => setStatus(list.selected, 'Approved'));
+  $('#bulk-reject').addEventListener('click', () => setStatus(list.selected, 'Rejected'));
+
+  $('#budgets').innerHTML = DB.budgets.map(b => {
+    const pct = Math.round(b.spent / b.budget * 100), tone = pct >= 100 ? 'danger' : pct >= 85 ? 'warning' : 'success';
+    return `<div class="flex items-center gap-3"><span class="icon-tile sm tone-${b.tone}"><i class="ph ph-${b.icon}"></i></span><div class="progress-row grow">
+      <div class="label-row"><span class="fw-600">${b.category}</span><span>${pct}%</span></div>
+      <progress class="progress bar-${tone}" value="${Math.min(100, pct)}" max="100" aria-label="${b.category} budget used"></progress>
+      <p class="text-xs text-3">${fmt.money(b.spent)} of ${fmt.money(b.budget)}</p></div></div>`;
+  }).join('');
+
+  chart('#trend-chart', {
+    chart: { type: 'bar', height: 200 },
+    series: [{ name: 'Approved claims', data: [6.2, 7.1, 5.8, 8.4, 7.7, 9.3].map(v => v * 1000) }],
+    colors: ['--chart-7'],
+    plotOptions: { bar: { columnWidth: '46%' } },
+    xaxis: { categories: DB.months.slice(-6) },
+    yaxis: { labels: { formatter: v => fmt.cash(v) } },
+    tooltip: { y: { formatter: v => fmt.money(v) } },
+    table: { format: v => fmt.money(v) },
+  });
+
+  $('#expense-form').addEventListener('valid', e => {
+    const d = e.detail, m = catMeta[d.category];
+    list.add({ id: `EXP-${6200 + list.data.length}`, date: new Date(d.date + 'T12:00').toISOString(), employee: me.name, department: 'Operations', category: d.category, icon: m.icon, tone: m.tone,
+      description: d.description, amount: +d.amount, receipt: !!(d.receipt && d.receipt.size), status: 'Pending' });
+    renderKpis(); toast(`${fmt.money(+d.amount, 2)} submitted for approval`, { title: 'Expense submitted' });
+  });
+</script>
+</body>
+</html>

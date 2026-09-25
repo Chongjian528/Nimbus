@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign In · Nimbus Admin</title>
+  <meta name="description" content="Sign in to your Nimbus ERP &amp; CRM workspace.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+</head>
+<body>
+<main class="auth" id="main">
+  <section class="auth-aside" aria-label="About Nimbus">
+    <a class="brand" href="index.html"><img src="assets/img/favicon.svg" alt="" width="40" height="40"><span class="brand-name">Nimbus</span></a>
+    <div>
+      <h2>Run sales, stock and finance from one calm place.</h2>
+      <p>Nimbus brings your CRM, inventory, invoicing and payroll together — so your team spends less time switching tabs and more time with customers.</p>
+    </div>
+    <div class="float-cards" aria-hidden="true">
+      <div class="glass" style="left:0;top:10px;width:250px">
+        <p class="text-xs fw-700 text-2">Revenue this month</p>
+        <p class="fw-800" style="font-size:1.5rem">$482,940 <span class="delta is-good"><i class="ph ph-trend-up"></i>12.4%</span></p>
+        <div class="mini-bars"><span style="height:38%"></span><span style="height:55%"></span><span style="height:46%"></span><span style="height:72%"></span><span style="height:60%"></span><span style="height:88%"></span><span style="height:76%"></span><span style="height:100%"></span></div>
+      </div>
+      <div class="glass flex items-center gap-3" style="right:0;top:40px;width:230px">
+        <span class="icon-tile sm tone-success"><i class="ph ph-shopping-cart-simple"></i></span>
+        <div><p class="text-sm fw-700">New order</p><p class="text-xs text-2">#ORD-24890 · $1,284.00</p></div>
+      </div>
+      <div class="glass flex items-center gap-3" style="right:40px;bottom:10px;width:240px">
+        <span class="icon-tile sm tone-warning"><i class="ph ph-package"></i></span>
+        <div><p class="text-sm fw-700">Stock replenished</p><p class="text-xs text-2">Austin Central · 120 units</p></div>
+      </div>
+    </div>
+    <figure class="glass" style="padding:20px">
+      <blockquote class="text-sm" style="margin:0">“We replaced four tools with Nimbus. Month-end close went from five days to one.”</blockquote>
+      <figcaption class="flex items-center gap-3 mt-3"><span class="avatar avatar-sm tone-violet" aria-hidden="true">GM</span><span><strong class="text-sm">Grace Morgan</strong><br><span class="text-xs text-2">COO, Luma Interiors</span></span></figcaption>
+    </figure>
+  </section>
+
+  <section class="auth-main">
+    <button class="btn btn-ghost btn-icon" type="button" data-action="toggle-theme" aria-label="Switch theme" style="position:absolute;top:16px;right:16px"><i class="ph ph-moon"></i></button>
+    <div class="auth-card">
+      <a class="brand mobile-logo mb-6" href="index.html"><img src="assets/img/favicon.svg" alt="" width="40" height="40"><span class="brand-name">Nimbus</span></a>
+      <h1>Welcome back</h1>
+      <p class="lead">Sign in to your Nimbus workspace.</p>
+
+      <div class="form-grid cols-2">
+        <button class="btn btn-secondary" type="button" onclick="App.toast('Social sign-in is disabled in this demo', { type: 'info' })"><i class="ph ph-google-logo"></i>Google</button>
+        <button class="btn btn-secondary" type="button" onclick="App.toast('Social sign-in is disabled in this demo', { type: 'info' })"><i class="ph ph-microsoft-outlook-logo"></i>Microsoft</button>
+      </div>
+      <p class="divider-text">or continue with email</p>
+
+      <form class="stack-sm" data-validate novalidate data-redirect="index.html">
+        <div class="field"><label class="label" for="email">Email</label>
+          <div class="input-icon"><i class="ph ph-envelope-simple"></i><input class="input" id="email" name="email" type="email" required autocomplete="email" value="olivia.carter@nimbus.io"></div></div>
+        <div class="field">
+          <div class="label-row"><label class="label" for="password">Password</label><a class="text-xs fw-600" href="forgot-password.html">Forgot password?</a></div>
+          <div class="input-icon"><i class="ph ph-lock-key"></i><input class="input" id="password" name="password" type="password" required minlength="6" autocomplete="current-password" value="nimbus-demo"><button class="input-action" type="button" data-action="toggle-password" aria-label="Show password" aria-pressed="false"><i class="ph ph-eye"></i></button></div>
+        </div>
+        <label class="check"><input type="checkbox" name="remember" checked>Keep me signed in for 30 days</label>
+        <button class="btn btn-primary btn-lg btn-block mt-2" type="submit">Sign in</button>
+      </form>
+      <p class="text-sm text-2 text-center mt-6">New to Nimbus? <a class="fw-600" href="register.html">Create an account</a></p>
+    </div>
+    <p class="text-xs text-3 mt-6">© <span id="year">2026</span> Nimbus · <a href="help.html">Help</a> · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
+  </section>
+</main>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

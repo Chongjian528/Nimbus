@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stock & Warehouses · Nimbus Admin</title>
+  <meta name="description" content="Stock & Warehouses — Nimbus ERP &amp; CRM admin template.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/fill/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar"></aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main">
+
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a><span>Inventory</span><span aria-current="page">Stock &amp; warehouses</span></nav>
+          <h1 class="page-title">Stock &amp; warehouses</h1>
+          <p class="page-subtitle">Monitor stock levels, movements and capacity across locations.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" type="button" data-modal="#adjust-modal"><i class="ph ph-sliders-horizontal"></i>Adjust stock</button>
+          <button class="btn btn-primary" type="button" data-modal="#transfer-modal"><i class="ph ph-arrows-left-right"></i>Transfer stock</button>
+        </div>
+      </div>
+
+      <section class="row" aria-label="Inventory summary" id="kpis"></section>
+
+      <section class="row" aria-label="Warehouses" id="warehouses"></section>
+
+      <section class="row stretch">
+        <div class="card xl-8">
+          <div class="card-header"><div><h2 class="card-title">Stock movement</h2><p class="card-subtitle">Units received vs. shipped, last 8 weeks</p></div></div>
+          <div class="card-body"><div id="movement-chart" class="chart" style="--chart-h:290px"></div></div>
+        </div>
+        <div class="card xl-4">
+          <div class="card-header"><div><h2 class="card-title">Stock value by category</h2><p class="card-subtitle">At cost</p></div></div>
+          <div class="card-body"><div id="value-chart" class="chart" style="--chart-h:290px"></div></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="alerts-title">
+        <div class="card-header">
+          <div><h2 class="card-title" id="alerts-title">Reorder alerts</h2><p class="card-subtitle">Items at or below their reorder point</p></div>
+          <button class="btn btn-soft btn-sm" type="button" id="reorder-all"><i class="ph ph-shopping-cart-simple"></i>Reorder all</button>
+        </div>
+        <div class="card-body flush mt-3">
+          <div class="table-wrap">
+            <table class="table table-cards">
+              <caption class="sr-only">Reorder alerts</caption>
+              <thead><tr><th scope="col">Product</th><th scope="col">Warehouse</th><th scope="col">Stock level</th><th scope="col" class="num">Reorder point</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead>
+              <tbody id="alerts"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="stock-list" aria-label="All stock">
+        <div class="table-toolbar">
+          <h2 class="card-title" style="margin-right:auto">All stock</h2>
+          <div class="input-icon"><i class="ph ph-magnifying-glass"></i><input class="input" type="search" placeholder="Search SKU or product…" aria-label="Search stock" data-table-search></div>
+          <select class="select" data-table-filter="warehouse" aria-label="Filter by warehouse" id="wh-filter"><option value="all">All warehouses</option></select>
+        </div>
+        <div class="table-wrap"><table class="table table-cards"></table></div>
+        <div class="table-footer"><span data-table-info></span><nav class="pagination" aria-label="Pagination" data-table-pager></nav></div>
+      </section>
+
+      <dialog class="modal" id="transfer-modal" aria-labelledby="transfer-title">
+        <form class="modal-form" data-validate novalidate data-success="Transfer created — the receiving warehouse has been notified.">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="transfer-title">Transfer stock</h2><p class="modal-desc">Move units between warehouses.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body form-grid cols-2">
+            <div class="field span-all"><label class="label" for="t-product">Product</label><select class="select wh-product" id="t-product" name="product" required></select></div>
+            <div class="field"><label class="label" for="t-from">From</label><select class="select wh-select" id="t-from" name="from"></select></div>
+            <div class="field"><label class="label" for="t-to">To</label><select class="select wh-select" id="t-to" name="to"></select></div>
+            <div class="field"><label class="label" for="t-qty">Quantity</label><input class="input" id="t-qty" name="qty" type="number" min="1" required inputmode="numeric"></div>
+            <div class="field"><label class="label" for="t-date">Ship date</label><input class="input" id="t-date" name="date" type="date" required></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Create transfer</button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog class="modal" id="adjust-modal" aria-labelledby="adjust-title">
+        <form class="modal-form" data-validate novalidate id="adjust-form">
+          <div class="modal-header">
+            <div><h2 class="modal-title" id="adjust-title">Adjust stock</h2><p class="modal-desc">Record counts, damages or returns.</p></div>
+            <button class="btn btn-ghost btn-icon" type="button" data-modal-close aria-label="Close"><i class="ph ph-x"></i></button>
+          </div>
+          <div class="modal-body form-grid cols-2">
+            <div class="field span-all"><label class="label" for="a-product">Product</label><select class="select wh-product" id="a-product" name="product" required></select></div>
+            <div class="field"><label class="label" for="a-type">Adjustment</label><select class="select" id="a-type" name="type"><option value="1">Add units</option><option value="-1">Remove units</option></select></div>
+            <div class="field"><label class="label" for="a-qty">Quantity</label><input class="input" id="a-qty" name="qty" type="number" min="1" required inputmode="numeric"></div>
+            <div class="field span-all"><label class="label" for="a-reason">Reason</label><select class="select" id="a-reason" name="reason"><option>Cycle count</option><option>Damaged goods</option><option>Customer return</option><option>Found stock</option></select></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+            <button class="btn btn-primary" type="submit">Save adjustment</button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/plugins/apexcharts/apexcharts.min.js"></script>
+<script>
+  const { fmt, esc, badge, table, chart, toast, $, $$ } = App;
+  const products = DB.products;
+  const levelBar = p => { const pct = Math.min(100, Math.round(p.stock / (p.reorder * 4) * 100)); const tone = p.stock === 0 ? 'danger' : p.stock < p.reorder ? 'warning' : 'success';
+    return `<div class="flex items-center gap-2" style="min-width:150px"><progress class="progress sm bar-${tone}" value="${pct}" max="100" aria-label="Stock level" style="width:90px"></progress><span class="fw-700 tabular">${fmt.num(p.stock)}</span></div>`; };
+  const statusOf = p => p.stock === 0 ? 'Out of stock' : p.stock < p.reorder ? 'Low stock' : 'In stock';
+
+  function renderKpis() {
+    const value = products.reduce((s, p) => s + p.stock * p.cost, 0);
+    $('#kpis').innerHTML = [
+      ['Units on hand', fmt.num(products.reduce((s, p) => s + p.stock, 0)), 'stack', 'primary'],
+      ['Stock value', fmt.money(value), 'currency-dollar', 'success'],
+      ['Low stock', products.filter(p => p.stock > 0 && p.stock < p.reorder).length, 'warning', 'warning'],
+      ['Out of stock', products.filter(p => p.stock === 0).length, 'prohibit', 'danger'],
+    ].map(([k, v, i, t]) => `<article class="card stat-inline sm-6 xl-3"><span class="icon-tile tone-${t}"><i class="ph ph-${i}"></i></span><div class="grow"><h2 class="stat-label">${k}</h2><p class="stat-value">${v}</p></div></article>`).join('');
+  }
+  renderKpis();
+
+  $('#warehouses').innerHTML = DB.warehouses.map(w => {
+    const pct = Math.round(w.used / w.capacity * 100), tone = pct > 90 ? 'danger' : pct > 75 ? 'warning' : 'success';
+    return `<article class="card sm-6 xl-3"><div class="card-body stack-sm">
+      <div class="flex items-center gap-3"><span class="icon-tile tone-info"><i class="ph ph-${w.icon}"></i></span><div class="grow"><h2 class="fw-700">${esc(w.name)}</h2><p class="text-xs text-3">${w.id} · ${esc(w.city)}</p></div></div>
+      <div class="progress-row"><div class="label-row"><span class="text-2">Capacity used</span><span>${pct}%</span></div><progress class="progress bar-${tone}" value="${pct}" max="100" aria-label="${esc(w.name)} capacity used"></progress></div>
+      <div class="flex justify-between text-xs text-2"><span>${fmt.num(w.used)} / ${fmt.num(w.capacity)} pallets</span><span>${w.skus} SKUs</span></div>
+      <div class="flex items-center gap-2 text-xs text-2">${App.avatar(w.manager, 'avatar-xs')}Managed by ${esc(w.manager)}</div>
+    </div></article>`;
+  }).join('');
+
+  const weeks = Array.from({ length: 8 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - d.getDay() - (7 - i) * 7); return fmt.day(d); }); // week-start dates
+  chart('#movement-chart', {
+    chart: { type: 'bar', height: 290 },
+    series: [{ name: 'Received', data: [820, 940, 760, 1120, 980, 1240, 1060, 1180] }, { name: 'Shipped', data: [760, 880, 910, 990, 1050, 1130, 1210, 1160] }],
+    colors: ['--chart-1', '--chart-3'],
+    stroke: { width: 2, colors: ['--surface'] },
+    plotOptions: { bar: { columnWidth: '52%' } },
+    xaxis: { categories: weeks },
+    yaxis: { labels: { formatter: v => fmt.num(v) } },
+    tooltip: { y: { formatter: v => `${fmt.num(v)} units` } },
+  });
+  const byCat = {};
+  products.forEach(p => { byCat[p.category] = (byCat[p.category] || 0) + p.stock * p.cost; });
+  const catRows = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  chart('#value-chart', {
+    chart: { type: 'bar', height: 290 },
+    series: [{ name: 'Stock value', data: catRows.map(c => Math.round(c[1])) }],
+    colors: ['--chart-7'],
+    plotOptions: { bar: { horizontal: true, barHeight: '52%' } },
+    xaxis: { categories: catRows.map(c => c[0]), labels: { formatter: v => fmt.cash(v) } },
+    grid: { xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } } },
+    tooltip: { y: { formatter: v => fmt.money(v) } },
+    table: { format: v => fmt.money(v) },
+  });
+
+  function renderAlerts() {
+    const low = products.filter(p => p.stock < p.reorder).sort((a, b) => a.stock - b.stock);
+    $('#alerts').innerHTML = low.length ? low.map(p => `<tr>
+      <td class="cell-main" data-label="Product"><div class="cell-user"><span class="thumb-icon tone-${p.tone}"><i class="ph ph-${p.icon}"></i></span><div><strong>${esc(p.name)}</strong><small>${p.sku}</small></div></div></td>
+      <td data-label="Warehouse">${esc(p.warehouse)}</td><td data-label="Stock level">${levelBar(p)}</td><td class="num" data-label="Reorder point">${p.reorder}</td>
+      <td data-label="Status">${badge(statusOf(p))}</td>
+      <td data-label="Action"><button class="btn btn-primary btn-sm" type="button" data-reorder="${p.id}"><i class="ph ph-plus"></i>Reorder</button></td></tr>`).join('')
+      : `<tr class="empty-row"><td colspan="6"><div class="empty"><span class="icon-tile tone-success"><i class="ph ph-check-circle"></i></span><h3>All stocked up</h3><p>No products are below their reorder point.</p></div></td></tr>`;
+  }
+  renderAlerts();
+  const reorder = ids => { ids.forEach(id => { const p = DB.find('products', id); p.stock += p.reorder * 3; p.stockStatus = statusOf(p); }); renderAlerts(); renderKpis(); list.render(); };
+  $('#alerts').addEventListener('click', e => { const b = e.target.closest('[data-reorder]'); if (b) { const p = DB.find('products', b.dataset.reorder); reorder([p.id]); toast(`Purchase order drafted for ${p.reorder * 3} × ${p.name}`, { title: 'Reorder placed' }); } });
+  $('#reorder-all').addEventListener('click', () => { const ids = products.filter(p => p.stock < p.reorder).map(p => p.id); if (!ids.length) return toast('Nothing to reorder', { type: 'info' }); reorder(ids); toast(`${ids.length} purchase orders drafted`, { title: 'Reorder placed' }); });
+
+  $('#wh-filter').insertAdjacentHTML('beforeend', DB.warehouses.map(w => `<option>${esc(w.name)}</option>`).join(''));
+  const list = table('#stock-list', {
+    data: products, caption: 'All stock', pageSize: 8, search: ['name', 'sku', 'category'], sort: ['stock', 'asc'], rowClick: false,
+    columns: [
+      { key: 'name', label: 'Product', sortable: true, cls: 'cell-main', render: p => `<div class="cell-user"><span class="thumb-icon tone-${p.tone}"><i class="ph ph-${p.icon}"></i></span><div><strong>${esc(p.name)}</strong><small>${p.sku} · ${p.category}</small></div></div>` },
+      { key: 'warehouse', label: 'Warehouse', sortable: true },
+      { key: 'stock', label: 'On hand', sortable: true, render: levelBar },
+      { key: 'cost', label: 'Unit cost', sortable: true, cls: 'col-xl num', render: p => fmt.money(p.cost) },
+      { key: 'value', label: 'Value', sortable: true, cls: 'num', sortValue: p => p.stock * p.cost, render: p => `<span class="fw-600">${fmt.money(p.stock * p.cost)}</span>` },
+      { key: 'stockStatus', label: 'Status', sortable: true, render: p => badge(statusOf(p)) },
+    ],
+  });
+
+  // Modals
+  $$('.wh-product').forEach(s => { s.innerHTML = products.map(p => `<option value="${p.id}">${esc(p.name)} (${p.stock} on hand)</option>`).join(''); });
+  $$('.wh-select').forEach((s, i) => { s.innerHTML = DB.warehouses.map(w => `<option>${esc(w.name)}</option>`).join(''); s.selectedIndex = i; });
+  $('#t-date').defaultValue = DB.ymd(new Date()); // defaultValue survives form.reset()
+  $('#adjust-form').addEventListener('valid', e => {
+    const p = DB.find('products', e.detail.product), delta = +e.detail.type * +e.detail.qty;
+    p.stock = Math.max(0, p.stock + delta); p.stockStatus = statusOf(p);
+    renderKpis(); renderAlerts(); list.render();
+    toast(`${p.name}: ${delta > 0 ? '+' : ''}${delta} units (${e.detail.reason.toLowerCase()})`, { title: 'Stock adjusted' });
+  });
+</script>
+</body>
+</html>

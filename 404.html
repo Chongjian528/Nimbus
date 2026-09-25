@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page Not Found · Nimbus Admin</title>
+  <meta name="description" content="The page you’re looking for doesn’t exist.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/plugins/plus-jakarta-sans/index.css">
+  <link rel="stylesheet" href="assets/plugins/phosphor-icons/regular/style.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/app.js"></script>
+</head>
+<body>
+<main class="error-page" id="main">
+  <button class="btn btn-ghost btn-icon" type="button" data-action="toggle-theme" aria-label="Switch theme" style="position:fixed;top:16px;right:16px"><i class="ph ph-moon"></i></button>
+  <div>
+    <svg viewBox="0 0 220 120" width="220" height="120" aria-hidden="true" style="margin:0 auto 8px">
+      <ellipse cx="110" cy="108" rx="70" ry="8" style="fill:var(--surface-3)"/>
+      <path d="M62 92h96a26 26 0 0 0 3-51.8A38 38 0 0 0 88 34a28 28 0 0 0-26 58z" style="fill:var(--primary-soft)"/>
+      <circle cx="96" cy="64" r="5" style="fill:var(--primary)"/><circle cx="130" cy="64" r="5" style="fill:var(--primary)"/>
+      <path d="M100 82q13-8 26 0" fill="none" stroke-width="4" stroke-linecap="round" style="stroke:var(--primary)"/>
+      <circle cx="176" cy="26" r="6" style="fill:var(--chart-4)"/><circle cx="40" cy="40" r="4" style="fill:var(--chart-5)"/>
+    </svg>
+    <p class="code">404</p>
+    <h1>This page floated away</h1>
+    <p>The link may be broken or the page may have moved. Let’s get you back on track.</p>
+    <div class="flex wrap gap-2 justify-center">
+      <button class="btn btn-secondary" type="button" onclick="history.length > 1 ? history.back() : location.assign('index.html')"><i class="ph ph-arrow-left"></i>Go back</button>
+      <a class="btn btn-primary" href="index.html"><i class="ph ph-house"></i>Back to dashboard</a>
+    </div>
+    <p class="text-sm text-3 mt-6" style="margin-bottom:0">Popular: <a href="orders.html">Orders</a> · <a href="customers.html">Customers</a> · <a href="products.html">Products</a> · <a href="help.html">Help center</a></p>
+  </div>
+</main>
+</body>
+</html>
