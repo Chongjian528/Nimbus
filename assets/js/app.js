@@ -157,15 +157,7 @@
       { label: 'Form Elements', icon: 'textbox', href: 'forms.html' },
     ] },
   ];
-  const currentPage = () => {
-    // Support both Cloudflare Pages Pretty URLs (/analytics) and local file paths (/analytics.html)
-    const explicit = document.body.dataset.nav;
-    if (explicit) return explicit;
-    const raw = location.pathname.split('/').pop() || 'index.html';
-    // If the raw segment has no extension, assume it's a pretty URL and append .html
-    // unless it's the root (empty) or already index.html
-    return raw.includes('.') ? raw : (raw === 'index' ? 'index.html' : raw + '.html');
-  };
+  const currentPage = () => document.body.dataset.nav || location.pathname.split('/').pop() || 'index.html';
   const pageIndex = () => NAV.flatMap(s => s.items.flatMap(it =>
     (it.children || [it]).map(c => ({ label: c.label, href: c.href, icon: it.icon, group: s.section }))));
 
